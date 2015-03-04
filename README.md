@@ -2,7 +2,7 @@ Baremetal tutorial for the Raspberry Pi
 =======================================
 
 This repository contains a series of baremetal examples for the
-[http://raspberrypi.org/|Raspberry PI]. The examples are numbered from
+Raspberry Pi (http://raspberrypi.org/). The examples are numbered from
 simple to complex and many of the later examples reuse the earlier
 ones, especially the UART.
 
