@@ -1,5 +1,5 @@
-Baremetal tutorial for the Raspberry Pi
-=======================================
+Baremetal tutorial for the Raspberry Pi / Pi b+ / Pi 2
+======================================================
 
 This repository contains a series of baremetal examples for the
 Raspberry Pi (http://raspberrypi.org/). The examples are numbered from
@@ -31,6 +31,8 @@ over serial.
 List of examples
 ================
 
-001-led - Turn the activity LED repeadetly on and off forever
-002-uart - Output some text on the UART and then echo all input
-003-c-code - Output some text on the UART and then echo input (in C)
+| Directory  | Description |
+| ---------- | ----------- |
+| 001-led    | Turn the activity LED repeadetly on and off forever |
+| 002-uart   | Output some text on the UART and then echo all input |
+| 003-c-code | Output some text on the UART and then echo input (in C) |
