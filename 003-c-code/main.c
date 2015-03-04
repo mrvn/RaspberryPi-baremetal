@@ -40,29 +40,37 @@ enum {
 };
 
 volatile uint32_t * peripheral(enum Base base, enum Register reg) {
+    // create pointer to specified periphery register
     return (volatile uint32_t *)(PERIPHERAL_BASE + base +reg);
 }
 
 void putc(char c) {
+    // wait for space in the transmit FIFO
     while(*peripheral(UART0_BASE, UART0_FR) & FR_TXFF) { }
+    // add char to transmit FIFO
     *peripheral(UART0_BASE, UART0_DR) = c;
 }
 
 char getc(void) {
+    // wait for data in the receive FIFO
     while(*peripheral(UART0_BASE, UART0_FR) & FR_RXFE) { }
+    // extract char from receive FIFO
     return *peripheral(UART0_BASE, UART0_DR);
 }
 
 void puts(const char *str) {
+    // putc until 0 byte
     while (*str) putc(*str++);
 }
 
+// declare prototype for panic function in boot.S
 void panic(void);
 
+// main C function, called from boot.S
 void kernel_main(uint32_t r0, uint32_t id, void *atags) {
-    UNUSED(r0);
-    UNUSED(id);
-    UNUSED(atags);
+    UNUSED(r0); // always 0
+    UNUSED(id); // 0xC42 for Raspberry Pi
+    UNUSED(atags); // address of atags, see later demo
 
     puts("UART barebone demo 003-c-code\n");
     puts("Enter 5 characters (but not return, hint, hint): ");

@@ -35,12 +35,12 @@ _start:
 	ldr	sp, =stack_top
 
 	// clear bss segment
-	ldr	r3, =_bss_start - 1
+	ldr	r3, =_bss_start - 1 // -1 because of the strltb below
 	ldr	r4, =_bss_end - 1
 1:
-	cmp	r3, r4
-	strlt	r0, [r3, #1]!
-	blt	1b
+	cmp	r3, r4		// already done?
+	strltb	r0, [r3, #1]!	// if not store 0 byte and advance r3
+	blt	1b		// if not repeat
 
 	// jump to kernel_main
 	ldr	r3, =kernel_main
