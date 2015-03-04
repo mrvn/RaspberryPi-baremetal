@@ -1,7 +1,7 @@
-Baremetal tutorial for the Raspberry Pi / Pi b+ / Pi 2
+Bare-metal examples for the Raspberry Pi / Pi b+ / Pi 2
 ======================================================
 
-This repository contains a series of baremetal examples for the
+This repository contains a series of bare-metal examples for the
 Raspberry Pi (http://raspberrypi.org/). The examples are numbered from
 simple to complex and many of the later examples reuse the earlier
 ones, especially the UART.
@@ -15,8 +15,8 @@ build them all.
 Each example builds some object files, links them into a *.elf file
 and creates a bootable *.img file from that. The *.img file you can
 copy to your SD card to try it. The first few example are build in
-multiple flavours for the different Rapsberry Pi models and you have
-to choose the one for your Rapsberry Pi. If you pick the wrong one
+multiple flavors for the different Raspberry Pi models and you have
+to choose the one for your Raspberry Pi. If you pick the wrong one
 nothing bad will happen but they also just wont work. After the
 auto-detect example everything will detect which Raspberry Pi model is
 being used automatically (that I know of at the time of writing).

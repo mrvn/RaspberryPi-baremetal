@@ -18,7 +18,7 @@ Background
 C runtime environment
 ---------------------
 
-C code requires a little setup before it can be called. Normaly this
+C code requires a little setup before it can be called. Normally this
 is done by the C runtime startup code. But since we are working
 bare-metal we have to provide this ourself. At a minimum C code needs
 a valid stack. It also assumes that uninitialized static and global
@@ -34,7 +34,7 @@ this is that now 2 files need to be compiled and linked and the
 pattern matching used in the first 2 examples is insufficient for
 this. If you don't fully understand the Makefile then don't worry
 about it. It gets simpler again when a single kernel.img is build in
-future demos instead of 3 seperate flavours.
+future demos instead of 3 separate flavors.
 
 What you should take away from the Makefile is the use of ASFLAGS and
 CFLAGS. Instead of repeating those flag for every gcc invocation they
@@ -50,15 +50,15 @@ code the compiler places code and different types of data in different
 sections and the important ones where added.
 
 The .text section has also got a new entry 'KEEP(*(.text.boot))'
-coresponding with boot.S using '.section ".text.boot"' for its
+corresponding with boot.S using '.section ".text.boot"' for its
 code. It is important to know that when the linker links multiple
-files it can place them in any order. Normaly the order of the files
+files it can place them in any order. Normally the order of the files
 on the command line is used within each section but that is not
-garanteed. But the code from boot.s MUST come first. By moving the
+guaranteed. But the code from boot.s MUST come first. By moving the
 code to the .text.boot section and specifying explicitly that
 .text.boot comes first the proper placement is enforced.
 
-Lasst 2 new symbols are declared in the linker script: _bss_start and
+Last 2 new symbols are declared in the linker script: _bss_start and
 _bss_end. These are set to the start and end address of the bss
 section and are used in boot.S to clear that section. In later demos
 you will see how such symbols can also be accessed from C code.
@@ -69,10 +69,10 @@ main.c
 Notice the use of the volatile keyword for the peripheral() function.
 This has something to do with compiler optimizations. As to why I
 declared a peripheral function as opposed to simply declaring a
-pointer in putc()/getc() will become aparent in the next demo.
+pointer in putc()/getc() will become apparent in the next demo.
 
-Normaly when a pointer is dereferenced twice and the compiler can
-proof (to itself) that nothing inbetween the two instances could have
+Normally when a pointer is dereferenced twice and the compiler can
+proof (to itself) that nothing in between the two instances could have
 changed the pointer then it doesn't have to load the value again from
 memory. Instead the previously value can be reused. Also a value
 stored in a variable (or through a pointer) doesn't actually have to
