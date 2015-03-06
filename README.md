@@ -24,7 +24,7 @@ being used automatically (that I know of at the time of writing).
 Enjoy,
 	Goswin von Brederlow
 
-PS: Checkout my raspbootin if you don't want to take out the SD card
+PS: Checkout raspbootin if you don't want to take out the SD card
 for every new image you want to try. It allows you to upload the image
 over serial.
 
@@ -33,6 +33,6 @@ List of examples
 
 | Directory  | Description |
 | ---------- | ----------- |
-| 001-led    | Turn the activity LED repeadetly on and off forever |
-| 002-uart   | Output some text on the UART and then echo all input |
-| 003-c-code | Output some text on the UART and then echo input (in C) |
+| 001-twinkle-twinkle-little-led | Turn the activity LED repeadetly on and off forever |
+| 002-hello-lo-lo-lo             | Output some text on the UART and then echo all input |
+| 003-can-you-c-me               | Output some text on the UART and then echo input (in C) |
