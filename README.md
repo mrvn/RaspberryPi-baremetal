@@ -36,3 +36,4 @@ List of examples
 | 001-twinkle-twinkle-little-led | Turn the activity LED repeadetly on and off forever |
 | 002-hello-lo-lo-lo             | Output some text on the UART and then echo all input |
 | 003-can-you-c-me               | Output some text on the UART and then echo input (in C) |
+| 004-a-t-a-and-g-walk-into-a-baremetal | Parse boot arguments and detect Raspberry Pi model |
