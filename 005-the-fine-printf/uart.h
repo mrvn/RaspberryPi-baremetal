@@ -41,4 +41,4 @@ void puts(const char *str);
 }
 #endif
 
-#endif // ##ifndef KERNEL_ARCHINFO_H
+#endif // ##ifndef KERNEL_UART_H

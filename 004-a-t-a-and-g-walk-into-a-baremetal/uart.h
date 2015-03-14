@@ -43,4 +43,4 @@ void show(const char *str, uint32_t x);
 }
 #endif
 
-#endif // ##ifndef KERNEL_ARCHINFO_H
+#endif // ##ifndef KERNEL_UART_H
