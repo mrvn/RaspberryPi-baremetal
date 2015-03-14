@@ -139,8 +139,8 @@ void arch_info_init(const Atag *atag) {
         atag = next(atag);
     }
     kprintf("\nDetected '%s'\n", model_name);
-    kprintf("Memory      : %#10.10lx\n", mem_total);
-    kprintf("Initrd start: %#10.10lx\n", initrd_start);
-    kprintf("Initrd size : %#10.10lx\n", initrd_size);
+    kprintf("Memory      : %#8.8lx\n", mem_total);
+    kprintf("Initrd start: %#8.8lx\n", initrd_start);
+    kprintf("Initrd size : %#8.8lx\n", initrd_size);
     kprintf("Commandline : '%s'\n", cmdline);
 }
