@@ -253,6 +253,9 @@ void handler_prefetch_abort(Regs *regs, uint32_t num) {
     decode_fault_status(ifsr);
     kprintf("IFAR %#8.8lx (fault address)\n", ifar);
     kprintf("IFSR %#8.8lx (fault status register)\n", ifsr);
+
+    // skip instruction
+    regs->lr += 4;
 }
 
 void handler_data_abort(Regs *regs, uint32_t num) {

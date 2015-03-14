@@ -43,6 +43,9 @@ void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
     
     kprintf("\nunaligned access *(0x1)\n");
     *(volatile uint32_t *)0x1;
+
+    kprintf("\nbreakpoint\n");
+    asm volatile ("bkpt");
     
     kprintf("\nGoodbye\n");
 }
