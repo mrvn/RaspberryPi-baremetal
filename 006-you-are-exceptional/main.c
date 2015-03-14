@@ -15,9 +15,8 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* Display a greeting and ask the user for 5 charcaters except for return
- * before returning to boot.S (falling through to panic). Call panic function
- * early if return was pressed.
+/* Detect Raspberry Pi model, install exception handlers and try a few of
+ * them.
  */
 
 #include <stdint.h>
