@@ -3,10 +3,12 @@ OBJS := boot.o arch_info.o uart.o kprintf.o main.o
 CROSS ?= arm-none-eabi-
 CC    ?= $(CROSS)gcc
 
-ARCHFLAGS := -mcpu=arm1176jzf-s
-# hard floats don't work with Debians ARMv6 libgcc :(
-ARCH_RPI  := -mcpu=arm1176jzf-s -mhard-float -mfpu=vfp
-ARCH_RPI2 := -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16
+# no floating point at all, use software emulation
+ARCHFLAGS := -mcpu=arm1176jzf-s -mfloat-abi=soft
+
+# flags when using floating point (pass as soft but use fpu)
+ARCH_RPI  := -mcpu=arm1176jzf-s -mfloat-abi=softfp -mfpu=vfp
+ARCH_RPI2 := -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16
 
 ASFLAGS := -ffreestanding -nostdlib -D ASSEMBLY
 CFLAGS  := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99
