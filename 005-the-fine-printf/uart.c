@@ -44,19 +44,3 @@ void puts(const char *str) {
     // putc until 0 byte
     while (*str) putc(*str++);
 }
-
-void put_uint32(uint32_t x) {
-    static const char HEX[] = "0123456789ABCDEF";
-    putc('0');
-    putc('x');
-    for (int i = 28; i >= 0; i -= 4) {
-        putc(HEX[(x >> i) % 16]);
-    }
-}
-
-void show(const char *str, uint32_t x) {
-    puts(str);
-    puts(": ");
-    put_uint32(x);
-    putc('\n');
-}

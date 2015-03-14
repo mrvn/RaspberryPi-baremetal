@@ -33,8 +33,6 @@ extern "C" {
 void putc(char c);
 char getc(void);
 void puts(const char *str);
-void put_uint32(uint32_t x);
-void show(const char *str, uint32_t x);
 
 #ifdef __cplusplus
 #ifdef 0
