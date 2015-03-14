@@ -46,10 +46,10 @@ typedef struct Regs {
     uint32_t r10;
     uint32_t r11;
     uint32_t r12;
+    uint32_t lr_svc; // lr from SVC mode
     uint32_t sp_usr;
     uint32_t lr_usr;
-    uint32_t pad;
-    uint32_t lr;
+    uint32_t lr; // lr from the mode of the exception
     uint32_t spsr;
 } Regs;
 
@@ -101,8 +101,7 @@ const char *MODE[] = {
     "sys"  // 0xb11111
 };
 
-void handler_default(Regs *regs, uint32_t num) {
-    kprintf("%s: %s, Regs @ %p\n", __FUNCTION__, EXCEPTION[num], regs);
+void dump_regs(Regs *regs) {
     kprintf("r0 : %#8.8lx   r1 : %#8.8lx   r2 : %#8.8lx   r3 : %#8.8lx\n",
 	    regs->r0, regs->r1, regs->r2, regs->r3);
     kprintf("r4 : %#8.8lx   r5 : %#8.8lx   r6 : %#8.8lx   r7 : %#8.8lx\n",
@@ -130,3 +129,160 @@ void handler_default(Regs *regs, uint32_t num) {
 	    MODE[regs->spsr & 0x1F],
 	    regs->spsr & 0x1F);
 }
+
+void handler_reset(Regs *regs, uint32_t num) {
+    // this will never be called
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+}
+
+void handler_undef(Regs *regs, uint32_t num) {
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+    kprintf("undefined intstruction @ %#8.8lx = %#8.8lx\n",
+	    regs->lr, *(uint32_t *)regs->lr);
+
+    // skip instruction
+    regs->lr += 4;
+}
+
+void handler_svc(Regs *regs, uint32_t num) {
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+}
+
+uint32_t ifsr_read(void) {
+    uint32_t t;
+    asm volatile ("mrc p15, 0, %[t], c5, c0, 1" : [t] "=r" (t));
+    return t;
+}
+
+uint32_t ifar_read(void) {
+    uint32_t t;
+    asm volatile ("mrc p15, 0, %[t], c6, c0, 2" : [t] "=r" (t));
+    return t;
+}
+
+uint32_t dfsr_read(void) {
+    uint32_t t;
+    asm volatile ("mrc p15, 0, %[t], c5, c0, 0" : [t] "=r" (t));
+    return t;
+}
+
+uint32_t dfar_read(void) {
+    uint32_t t;
+    asm volatile ("mrc p15, 0, %[t], c6, c0, 0" : [t] "=r" (t));
+    return t;
+}
+
+void decode_fault_status(uint32_t fsr) {
+    uint32_t status = ((fsr & (1 << 10)) >> 6) | (fsr & 0x7);
+    switch (status) {
+    case 0b00001:
+	kprintf("alignment fault\n");
+	break;
+    case 0b00100:
+	kprintf("fault on instruction cache maintenance\n");
+	break;
+    case 0b01100:
+	kprintf("synchronnous external abort, first level translation fault\n");
+	break;
+    case 0b01110:
+	kprintf("synchronnous external abort, second level translation fault\n");
+	break;
+    case 0b11100:
+	kprintf("synchronnous parity error, first level translation fault\n");
+	break;
+    case 0b11110:
+	kprintf("synchronnous parity error, second level translation fault\n");
+	break;
+
+    case 0b00101:
+	kprintf("first level translation fault\n");
+	break;
+    case 0b00111:
+	kprintf("second level translation fault\n");
+	break;
+    case 0b00011:
+	kprintf("first level access flag fault\n");
+	break;
+    case 0b00110:
+	kprintf("second level access flag fault\n");
+	break;
+    case 0b01001:
+	kprintf("first level domain fault, domain %ld\n", (fsr & 0xF0) >> 4);
+	break;
+    case 0b01011:
+	kprintf("second level domain fault, domain %ld\n", (fsr & 0xF0) >> 4);
+	break;
+    case 0b01101:
+	kprintf("first level permission fault\n");
+	break;
+    case 0b01111:
+	kprintf("second level permission fault\n");
+	break;
+    case 0b00010:
+	kprintf("debug event\n");
+	break;
+    case 0b01000:
+	kprintf("synchronous external abort\n");
+	break;
+    case 0b10000:
+	kprintf("TLB conflict event\n");
+	break;
+    case 0b11001:
+	kprintf("synchronous parity error on memory access\n");
+	break;
+    case 0b10110:
+	kprintf("asynchronous external abort\n");
+	break;
+    case 0b11000:
+	kprintf("asynchronous parity error on memory access\n");
+	break;
+    default:
+	kprintf("unknown / reserved fault\n");
+    }
+}
+
+void handler_prefetch_abort(Regs *regs, uint32_t num) {
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+    uint32_t ifsr = ifsr_read();
+    uint32_t ifar = ifar_read();
+    kprintf("prefetch abort, ");
+    decode_fault_status(ifsr);
+    kprintf("IFAR %#8.8lx (fault address)\n", ifar);
+    kprintf("IFSR %#8.8lx (fault status register)\n", ifsr);
+}
+
+void handler_data_abort(Regs *regs, uint32_t num) {
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+    uint32_t dfsr = dfsr_read();
+    uint32_t dfar = dfar_read();
+    kprintf("data abort on %s, ", (dfsr & (1 << 11)) ? "write" : "read");
+    decode_fault_status(dfsr);
+    kprintf("DFAR %#8.8lx (fault address)\n", dfar);
+    kprintf("DFSR %#8.8lx (fault status register)\n", dfsr);
+
+    // skip instruction
+    regs->lr += 4;
+}
+
+void handler_hypervisor_trap(Regs *regs, uint32_t num) {
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+}
+
+void handler_irq(Regs *regs, uint32_t num) {
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+}
+
+void handler_fiq(Regs *regs, uint32_t num) {
+    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+    dump_regs(regs);
+}
+
+// data abort: DFSR + DFAR
+// prefetch: IFSR + IFAR

@@ -33,8 +33,8 @@
 .global exception_vector
 exception_vector:
 	b	stub_reset
-	b	stub_undefined_instruction
-	b	stub_supervisor_call
+	b	stub_undef
+	b	stub_svc
 	b	stub_prefetch_abort
 	b	stub_data_abort
 	b	stub_hypervisor_trap
@@ -49,13 +49,11 @@ exception_vector:
         srsdb   #0x13!
         // switch to SYS mode, interrupts disabled
         cpsid   i, #0x13
-	// dummy push so the stack ends up aligned
-	push	{r0}
         // save user space SP/LR
         sub     sp, #8
         stmia   sp, {sp, lr}^
-        // save all registers on the stack
-        push    {r0-r12}
+        // save all registers on the stack (+ LR for alignment)
+        push    {r0-r12, lr}
         // move pointer to registers into first argument
         mov     r0, sp
 	// move number for exception into second argument
@@ -64,31 +62,32 @@ exception_vector:
 
 // restore all registes and return from exception
 .macro restoreall
-        // restore all regs from stack
-        pop     {r0-r12}
+        // restore all regs from stack (+ LR for alignment)
+        pop     {r0-r12, lr}
         // restore user space SP/LR and skip dummy
         ldmia   sp, {sp, lr}^
-        add     sp, #12
+        add     sp, #8
         // return to whence we came from
         rfeia   sp!
 .endm
 
-.macro	make, name, handler, num, offset
+.macro	make, num, offset, name
 	.global	stub_\name
 stub_\name:
 	saveall	\num, \offset
-	bl	handler_\handler
+	bl	handler_\name
 	restoreall
 .endm
 
-make reset,                 default, 0, 0
-make undefined_instruction, default, 1, 4
-make supervisor_call,       default, 2, 0
-make prefetch_abort,        default, 3, 4
-make data_abort,            default, 4, 8
-make hypervisor_trap,       default, 5, 0
-make irq,                   default, 6, 4
-make fiq,                   default, 7, 4
+// num, offset, name
+make 0, 0, reset
+make 1, 4, undef
+make 2, 0, svc
+make 3, 4, prefetch_abort
+make 4, 8, data_abort
+make 5, 0, hypervisor_trap
+make 6, 4, irq
+make 7, 4, fiq
 
 
 panic:
