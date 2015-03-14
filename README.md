@@ -38,3 +38,4 @@ List of examples
 | 003-can-you-c-me | Output some text on the UART and then echo input (in C) |
 | 004-a-t-a-and-g-walk-into-a-baremetal | Parse boot arguments and detect Raspberry Pi model |
 | 005-the-fine-printf | Introducing the family of printf functions |
+| 006-you-are-exceptional | Add exception handling |
