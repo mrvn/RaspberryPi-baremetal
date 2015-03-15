@@ -28,7 +28,7 @@ all: kernel.img
 	arm-none-eabi-gcc $(ARCHFLAGS) $(ASFLAGS) -c -o $@ $<
 
 %.o: %.c
-	arm-none-eabi-gcc $(ARCHFLAGS) $(CFLAGS) -D MODEL=0 -c -o $@ $<
+	arm-none-eabi-gcc $(ARCHFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f kernel*.img kernel*.elf *.o *~

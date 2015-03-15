@@ -23,7 +23,7 @@ all: kernel.img
 	arm-none-eabi-gcc $(ARCH_RPI) $(ASFLAGS) -c -o $@ $<
 
 %.o: %.c
-	arm-none-eabi-gcc $(ARCH_RPI) $(CFLAGS) -D MODEL=0 -c -o $@ $<
+	arm-none-eabi-gcc $(ARCH_RPI) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f kernel*.img kernel*.elf *.o *~
