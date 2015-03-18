@@ -54,8 +54,9 @@ halt:
 constants:
 .ltorg
 	
-.section ".data"
+.section ".bss"
 // 16k stack aligned to 4 byte
+.balign 4
 .global stack
 stack:
 	.fill	4096, 4, 0
