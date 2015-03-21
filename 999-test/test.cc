@@ -4,6 +4,7 @@
 // cropping to 2.14 fixed point
 // scaling to 16.16 fixed point
 
+#include <unistd.h>
 #include <iostream>
 #include "fixed.h"
 #include "trig.h"
@@ -50,9 +51,10 @@ FB fb(WIDTH, HEIGHT, WIDTH, pixels);
 int main() {
     /**/
     init_normals(cube);
-    Rad rx = Rad(M_PI / 180 * 10);
-    Rad ry = Rad(M_PI / 180 * 30);
-    Rad rz = Rad(M_PI / 180 * 50);
+    for (int deg = -72; deg < 72; ++deg) {
+    Rad rx = Rad(M_PI / 180 * 1 * deg);
+    Rad ry = Rad(M_PI / 180 * 3 * deg);
+    Rad rz = Rad(M_PI / 180 * 5 * deg);
     M rotation = M::rotational(rx, ry, rz);
     R rotated[cube.num_points];
     P point[cube.num_points];
@@ -88,6 +90,23 @@ int main() {
         }
         std::cerr << std::endl;
     }
+    // fill visible faces
+    for (int i = 0; i < cube.num_poly; ++i) {
+        if (!visible[i]) continue;
+        int num = cube.poly[i].num_points;
+        FB::Point poly_point[num];
+        for (int j = 0; j < num; ++j) {
+            int k = cube.poly[i].point[j];
+            poly_point[j].x = PFP::T(point[k].x());
+            poly_point[j].y = PFP::T(point[k].y());
+        }
+        uint8_t z = 0x20;
+        if (normal[i].z() > 0) {
+            z += RFP::T(normal[i].z() * 0xDF);
+        }
+        FB::Color c({0x00, z, 0x00, 0x00});
+        fb.fill(c, num, poly_point);
+    }
     // draw hidden faces
     for (int i = 0; i < cube.num_poly; ++i) {
         if (visible[i]) continue;
@@ -95,11 +114,11 @@ int main() {
         for (int j = 0; j < num; ++j) {
             int k = cube.poly[i].point[j];
             int n = cube.poly[i].point[(j + 1) % num];
-            fb.line(PFP::T(point[k].x()),
-                    PFP::T(point[k].y()),
-                    PFP::T(point[n].x()),
-                    PFP::T(point[n].y()),
-                    FB::GREY);
+            fb.draw_line(PFP::T(point[k].x()),
+                         PFP::T(point[k].y()),
+                         PFP::T(point[n].x()),
+                         PFP::T(point[n].y()),
+                         FB::GREY);
         }
     }
     // draw visible faces
@@ -109,11 +128,11 @@ int main() {
         for (int j = 0; j < num; ++j) {
             int k = cube.poly[i].point[j];
             int n = cube.poly[i].point[(j + 1) % num];
-            fb.line(PFP::T(point[k].x()),
-                    PFP::T(point[k].y()),
-                    PFP::T(point[n].x()),
-                    PFP::T(point[n].y()),
-                    FB::WHITE);
+            fb.draw_line(PFP::T(point[k].x()),
+                         PFP::T(point[k].y()),
+                         PFP::T(point[n].x()),
+                         PFP::T(point[n].y()),
+                         FB::WHITE);
         }
     }
     // draw points
@@ -139,5 +158,8 @@ int main() {
     fb.at(x1, y1) = FB::WHITE;
     fb.at(x2, y2) = FB::WHITE;
 */
-    fb.save("screenshot.pnm");
+    fb.save("screenshot.pnm", "screenshot.pnm.tmp");
+    fb.clear();
+    sleep(1);
+    }
 }

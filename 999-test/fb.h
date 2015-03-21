@@ -91,8 +91,14 @@ public:
     }
 
     void clear(const Color &c = BLACK);
-    void save(const char *filename);
-    void line(ssize_t x1, ssize_t y1, ssize_t x2, ssize_t y2, const Color &c);
+    void save(const char *filename, const char *tmpname);
+    void draw_line(ssize_t x1, ssize_t y1, ssize_t x2, ssize_t y2, const Color &c);
+    class Point {
+    public:
+        ssize_t x, y;
+    };
+
+    void fill(const Color &c, size_t length, const Point *points);
 private:
     const size_t width_;
     const size_t height_;
