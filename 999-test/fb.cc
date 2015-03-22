@@ -81,32 +81,6 @@ void FB::draw_line(ssize_t x1, ssize_t y1, ssize_t x2, ssize_t y2,
     // printf("(%zd, %zd) %zd\n", x, y, d);
 }
 
-/*
-void fb_line(int x1, int y1, int x2, int y2, Color c) {
-    int sx = (x1 <= x2) ? 1 : -1;
-    int sy = (y1 <= y2) ? 1 : -1;
-    int dx = 2 * sx * (x2 - x1);
-    int dy = 2 * sy * (y2 - y1);
-    int x = x1;
-    int y = y1;
-
-    // up/down, one point per screen line
-    if (dy > 0) {
-	int d = dy / 2 - dx;
-	fb_set(x, y, c);
-	while (y != y2) {
-	    while ((d < 0) || ((sx > 0) && (d == 0))) {
-		x += sx;
-		d += dy;
-	    }
-	    y += sy;
-	    d -= dx;
-	    fb_set(x, y, c);
-	}
-    }
-}
-*/
-
 class LineIterator {
 public:
     LineIterator(ssize_t x1, ssize_t y1, ssize_t x2, ssize_t y2)
