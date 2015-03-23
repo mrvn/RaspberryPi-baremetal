@@ -12,6 +12,23 @@ The kernel_main() C function outputs a greeting to the UART and asks
 the user to input 5 characters, which it echoes back. The code aborts
 early if return is pressed, calling the panic function from boot.S.
 
+Improvements
+============
+
+This demo is the first to include a header file that is included by
+other source files. This makes it a prerequisite for the files
+including it. Every time the header file changes the source files
+including it should be rebuild. This can be added manually as
+dependencies in the Makefile but that is tiresome and prone to
+errors. Instead a feature of gcc is used to generate dependencies
+automatically as a side effect of compiling the source. In the
+Makefile you may notice 'DEPENDFLAGS := -MD -MP'. These two options
+tell gcc to create a dependency file (*.d) in GNU Make syntax each
+time it compiles a source file. And at the bottom of the Makefile
+there is '-include *.d' which tells make to include any *.d file it
+finds and not give any errors if none are found, which will be the
+case if the source has never been compiled before or recently cleaned.
+
 Background
 ==========
 

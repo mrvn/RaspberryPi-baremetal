@@ -10,6 +10,9 @@ ASFLAGS := -ffreestanding -nostdlib -D ASSEMBLY
 CFLAGS  := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99
 
 # no user seviceable parts below
+DEPENDFLAGS := -MD -MP
+ASFLAGS     += $(DEPENDFLAGS)
+CFLAGS      += $(DEPENDFLAGS)
 
 OBJS_RPI  := $(patsubst %.o,%-rpi.o,$(OBJS))
 OBJS_RPIB := $(patsubst %.o,%-rpi-b-plus.o,$(OBJS))
@@ -48,7 +51,9 @@ all: kernel-rpi.img kernel-rpi-b-plus.img kernel-rpi2.img
 	arm-none-eabi-gcc $(ARCH_RPI2) $(CFLAGS) -D MODEL=2 -c -o $@ $<
 
 clean:
-	rm -f kernel*.img kernel*.elf *.o *~
+	rm -f kernel*.img kernel*.elf *.o *~ *.d
+
+-include *.d
 
 # stop make from deleting the intermediate files
 .PRECIOUS: %-rpi.elf %-rpi-b-plus.elf %-rpi2.elf %-rpi.o %-rpi-b-plus.o %-rpi2.o
