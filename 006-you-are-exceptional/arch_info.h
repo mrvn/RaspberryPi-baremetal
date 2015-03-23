@@ -22,14 +22,9 @@
 #define KERNEL_ARCHINFO_H
 
 #include <stdint.h>
+#include <sys/cdefs.h>
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-}
-#endif
-#endif
-
+__BEGIN_DECLS
 enum Model {
     RASPBERRY_PI,
     RASPBERRY_PI_B_PLUS,
@@ -58,12 +53,6 @@ volatile uint32_t * peripheral(enum Base base, enum Register reg);
 typedef struct Atag Atag;
 
 void arch_info_init(const Atag *atag);
-
-#ifdef __cplusplus
-#ifdef 0
-{
-#endif
-}
-#endif
+__END_DECLS
 
 #endif // ##ifndef KERNEL_ARCHINFO_H

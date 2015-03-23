@@ -8,6 +8,18 @@ now. The demo will auto detect what Raspberry Pi model it is running
 on, how much memory is available for the ARM cpu and where any initrd
 is located and print that information.
 
+Improvements
+============
+
+In this demo there are multiple include files and there is a bit more
+meat to them. Specifically they declare external variables and
+functions. Should those include files ever be included in a c++ source
+the C++ name mangling would break things. To prevent this the
+declarations are enclosed between __BEGIN_DECLS and __END_DECLS, which
+are defined in <sys/cdefs.h>. Those macros enclose the declaration in
+an extern "C" block if C++ is being used and do nothing otherwise.
+cdefs.h also contains a few other macros which will be used later on.
+
 Background
 ==========
 

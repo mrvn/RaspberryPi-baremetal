@@ -36,13 +36,13 @@ complete description of the interface.
 
 The demo also introduces a gcc extension that can be invaluable. The
 printf.h file declares the kprintf, snprintf and cprintf functions ad
-__PRINTFLIKE, which is a macro defined at the top. What that does is
-tell gcc that the functions are like printf in that they take a format
-string and variable number of arguments. The compiler then checks the
-format string against the arguments supplied to any of the functions
-at compile time and issues warnings if there are too few or to many
-arguments or if any of the arguments have the wrong type for the
-format specifier used in the format string. If you ever used printf in
-normal C code then I'm sure you will have seen those errors
+__PRINTFLIKE, which is a macro defined in <sys/cdefs.h>. What that
+does is tell gcc that the functions are like printf in that they take
+a format string and variable number of arguments. The compiler then
+checks the format string against the arguments supplied to any of the
+functions at compile time and issues warnings if there are too few or
+to many arguments or if any of the arguments have the wrong type for
+the format specifier used in the format string. If you ever used
+printf in normal C code then I'm sure you will have seen those errors
 before. The __PRINTFLIKE macro just tells gcc to produce the same
 warnings for these functions too.

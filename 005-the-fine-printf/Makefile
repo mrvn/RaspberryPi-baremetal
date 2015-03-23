@@ -15,6 +15,9 @@ CFLAGS  := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99
 LDFLAGS := -ffreestanding -nostdlib
 
 # no user seviceable parts below
+DEPENDFLAGS := -MD -MP
+INCLUDE := -I .
+FLAGS := $(ARCHFLAGS) $(DEPENDFLAGS) $(INCLUDE)
 
 all: kernel.img
 
@@ -25,13 +28,15 @@ all: kernel.img
 	arm-none-eabi-gcc $(LDFLAGS) -Tlink-arm-eabi.ld -o $@ $(OBJS) -lgcc
 
 %.o: %.S
-	arm-none-eabi-gcc $(ARCHFLAGS) $(ASFLAGS) -c -o $@ $<
+	arm-none-eabi-gcc $(FLAGS) $(ASFLAGS) -c -o $@ $<
 
 %.o: %.c
-	arm-none-eabi-gcc $(ARCHFLAGS) $(CFLAGS) -c -o $@ $<
+	arm-none-eabi-gcc $(FLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f kernel*.img kernel*.elf *.o *~
+	rm -f kernel*.img kernel*.elf *.o *~ *.d
+
+-include *.d
 
 # stop make from deleting the intermediate files
 .PRECIOUS: %.elf %.o

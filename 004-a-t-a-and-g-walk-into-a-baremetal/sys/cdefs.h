@@ -15,7 +15,7 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-// Striped down for MOOSE
+// Striped down for RaspberryPi-baremetal use
 
 #ifndef	_SYS_CDEFS_H
 #define	_SYS_CDEFS_H	1
@@ -88,5 +88,8 @@
 # define __nonnull(params) __attribute__ ((__nonnull__ params))
 # define __attribute_warn_unused_result__ __attribute__ ((__warn_unused_result__))
 # define __attribute_pure__ __attribute__ ((__pure__))
+
+/* format string checking for printf like functions */
+#define __PRINTFLIKE(__fmt,__varargs) __attribute__((__format__ (__printf__, __fmt, __varargs)))
 
 #endif	 /* sys/cdefs.h */

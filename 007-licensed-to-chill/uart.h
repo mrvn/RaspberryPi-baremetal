@@ -22,23 +22,12 @@
 #define KERNEL_UART_H
 
 #include <stdint.h>
+#include <sys/cdefs.h>
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-}
-#endif
-#endif
-
+__BEGIN_DECLS
 void putc(char c);
 char getc(void);
 void puts(const char *str);
-
-#ifdef __cplusplus
-#ifdef 0
-{
-#endif
-}
-#endif
+__END_DECLS
 
 #endif // ##ifndef KERNEL_UART_H

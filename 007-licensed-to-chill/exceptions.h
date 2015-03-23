@@ -22,21 +22,10 @@
 #define KERNEL_EXCEPTIONS_H
 
 #include <stdint.h>
+#include <sys/cdefs.h>
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-}
-#endif
-#endif
-
+__BEGIN_DECLS
 void exceptions_init(void);
-
-#ifdef __cplusplus
-#ifdef 0
-{
-#endif
-}
-#endif
+__END_DECLS
 
 #endif // ##ifndef KERNEL_EXCEPTIONS_H
