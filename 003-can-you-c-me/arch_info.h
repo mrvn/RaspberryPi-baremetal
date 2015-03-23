@@ -21,13 +21,6 @@
 #ifndef KERNEL_ARCHINFO_H
 #define KERNEL_ARCHINFO_H
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-}
-#endif
-#endif
-
 #ifndef MODEL
 #error MODEL not defined
 #endif
@@ -58,13 +51,6 @@ extern "C" {
 
 #ifndef PERIPHERAL_BASE
 #error MODEL must be one of 0 (RPi), 1 (RPi b+) or 2 (RPi 2)
-#endif
-
-#ifdef __cplusplus
-#ifdef 0
-{
-#endif
-}
 #endif
 
 #endif // ##ifndef KERNEL_ARCHINFO_H
