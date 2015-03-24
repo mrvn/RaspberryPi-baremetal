@@ -27,7 +27,7 @@ IRQs
 
 The Raspberry Pi has receives interrupts from 3 sources, the GPU, the
 VC and the ARM peripherals. These interrupts are split up over 3
-registers each with a pending, enable and disable flavour. A lot of
+registers each with a pending, enable and disable flavor. A lot of
 the interrupts are used by the GPU/VC and should not be interfered
 with. The basic pending register has all the arm peripherals
 connected, some select GPU/VC interrupts and 2 bits indicating the 2

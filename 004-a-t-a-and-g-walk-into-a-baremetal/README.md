@@ -2,10 +2,10 @@ Parse boot arguments and detect Raspberry Pi model
 ==================================================
 
 At boot the Raspberry Pi firmware follows the old Linux boot protocol for
-ARM systems called ATAG. Optionally the bootloader can use the newer
+ARM systems called ATAG. Optionally the boot-loader can use the newer
 device tree but that is not the default so lets ignore that for
 now. The demo will auto detect what Raspberry Pi model it is running
-on, how much memory is available for the ARM cpu and where any initrd
+on, how much memory is available for the ARM CPU and where any initrd
 is located and print that information.
 
 Improvements
@@ -26,7 +26,7 @@ Background
 Unfortunately all Raspberry Pi models use the same machine type
 (0xC42) so that doesn't help figuring out what model is being
 booted. But the command line passed to the kernel is sufficiently
-different to make that destinction. And that's what is used in the
+different to make that distinction. And that's what is used in the
 Demo. Specifically the definition of the activity LED (disk_led) is
 used as that is different on each model:
 
@@ -52,7 +52,7 @@ before calling the kernel. Namely this is:
 * CPU register 1 must be the ARM Linux machine type
 * CPU register 2 must be the physical address of the parameter list
 
-The bootloader is expected to call the kernel image by jumping
+The boot-loader is expected to call the kernel image by jumping
 directly to the first instruction of the kernel image.
 
 ATAGs
