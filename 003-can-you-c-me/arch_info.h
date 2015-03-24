@@ -15,7 +15,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* Information about the different Raspberry Pi models
+/* Information about the differentnt Raspberry Pi models
  */
 
 #ifndef KERNEL_ARCHINFO_H

@@ -75,7 +75,7 @@
 # define __BEGIN_NAMESPACE_C99
 # define __END_NAMESPACE_C99
 # define __USING_NAMESPACE_C99(name)
-# define __BEGIN_NAMESPACE(nam)
+# define __BEGIN_NAMESPACE(name)
 # define __END_NAMESPACE(name)
 # define __USING_NAMESPACE(name)
 #endif

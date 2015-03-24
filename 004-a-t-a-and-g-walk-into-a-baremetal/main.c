@@ -15,7 +15,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* Detect the Raspberry Pi model and output architecture and boot infos.
+/* Detect the Raspberry Pi model and output architecture and boot info's.
  */
 
 #include <stdint.h>

@@ -14,7 +14,7 @@ ASFLAGS := -ffreestanding -nostdlib -D ASSEMBLY
 CFLAGS  := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99
 LDFLAGS := -ffreestanding -nostdlib
 
-# no user seviceable parts below
+# no user serviceable parts below
 DEPENDFLAGS := -MD -MP
 INCLUDE := -I .
 FLAGS := $(ARCHFLAGS) $(DEPENDFLAGS) $(INCLUDE)

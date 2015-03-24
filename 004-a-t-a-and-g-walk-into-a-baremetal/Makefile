@@ -13,7 +13,7 @@ ARCH_RPI2 := -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16
 ASFLAGS := -ffreestanding -nostdlib -D ASSEMBLY
 CFLAGS  := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99
 
-# no user seviceable parts below
+# no user serviceable parts below
 DEPENDFLAGS := -MD -MP
 INCLUDE := -I .
 FLAGS := $(ARCHFLAGS) $(DEPENDFLAGS) $(INCLUDE) 

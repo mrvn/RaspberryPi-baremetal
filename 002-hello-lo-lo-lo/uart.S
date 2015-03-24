@@ -42,7 +42,7 @@
 #error MODEL must be one of 0 (RPi), 1 (RPi b+) or 2 (RPi 2)
 #endif
 
-#define UART0_BASE        0x201000 // 0x??201000 base adress of UART0
+#define UART0_BASE        0x201000 // 0x??201000 base address of UART0
 #define DR                    0x00 // 0x??201000 data register
 #define FR                    0x18 // 0x??201018 flag register
 #define FR_TXFF             1 << 5 // Transmit FIFO full
