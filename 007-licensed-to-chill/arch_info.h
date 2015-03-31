@@ -40,10 +40,22 @@ extern uint32_t peripheral_base;
 extern uint32_t led_act_pin;
 
 enum Base {
+    IRQ_BASE   = 0x00B000, // 0x??00B000
     UART0_BASE = 0x201000, // 0x??201000
 };
 
 enum Register {
+    IRQ_BASIC_PENDING = 0x200, // 0x??00B200
+    IRQ_PENDING1      = 0x204, // 0x??00B204 
+    IRQ_PENDING2      = 0x208, // 0x??00B208
+    IRQ_FIQ_CONTROL   = 0x20C, // 0x??00B20C
+    IRQ_ENABLE1       = 0x210, // 0x??00B210
+    IRQ_ENABLE2       = 0x214, // 0x??00B214
+    IRQ_ENABLE_BASIC  = 0x218, // 0x??00B218
+    IRQ_DISABLE1      = 0x21C, // 0x??00B21C
+    IRQ_DISABLE2      = 0x220, // 0x??00B220
+    IRQ_DISABLE_BASIC = 0x224, // 0x??00B224
+
     UART0_DR = 0x00, // 0x??201000 data register
     UART0_FR = 0x18, // 0x??201018 flag register
 };

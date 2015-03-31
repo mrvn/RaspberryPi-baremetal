@@ -19,6 +19,7 @@
  */
 
 #include "exceptions.h"
+#include "arch_info.h"
 #include "kprintf.h"
 
 extern uint32_t exception_vector[];
@@ -287,5 +288,45 @@ void handler_fiq(Regs *regs, uint32_t num) {
     dump_regs(regs);
 }
 
-// data abort: DFSR + DFAR
-// prefetch: IFSR + IFAR
+uint32_t cpsr_read() {
+    uint32_t t;
+    asm volatile ("mrs %[t], CPSR" : [t] "=r" (t));
+    return t;
+}
+
+void cpsr_write_c(uint32_t t) {
+    asm volatile ("msr CPSR_c, %[t]" : : [t] "r" (t));
+}
+
+enum CPSR {
+    CPSR_FIQ_DISABLE = 1U << 6,
+    CPSR_IRQ_DISABLE = 1U << 7,
+};
+
+void enable_irqs(void) {
+    uint32_t cpsr = cpsr_read();
+    cpsr &= ~CPSR_IRQ_DISABLE;
+    cpsr_write_c(cpsr);
+}
+
+void disable_irqs(void) {
+    uint32_t cpsr = cpsr_read();
+    cpsr |= CPSR_IRQ_DISABLE;
+    cpsr_write_c(cpsr);
+}
+
+void enable_irq(enum IRQ irq) {
+    enum Register reg =
+	(irq < 32) ? IRQ_ENABLE1
+	           : ((irq < 64) ? IRQ_ENABLE2 : IRQ_ENABLE_BASIC);
+    volatile uint32_t * enable = peripheral(IRQ_BASE, reg);
+    *enable = 1U << (irq % 32);
+}
+
+void disable_irq(enum IRQ irq) {
+    enum Register reg =
+	(irq < 32) ? IRQ_DISABLE1
+	           : ((irq < 64) ? IRQ_DISABLE2 : IRQ_DISABLE_BASIC);
+    volatile uint32_t * disable = peripheral(IRQ_BASE, reg);
+    *disable = 1U << (irq % 32);
+}

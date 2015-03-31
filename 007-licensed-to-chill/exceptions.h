@@ -26,6 +26,40 @@
 
 __BEGIN_DECLS
 void exceptions_init(void);
+void enable_irqs(void);
+void disable_irqs(void);
+
+enum IRQ {
+    //IRQ_TIMER0               =  0, // GPU used
+    IRQ_TIMER1               =  1,
+    //IRQ_TIMER2               =  2, // GPU used
+    IRQ_TIMER3               =  3,
+    IRQ_AUX                  = 29,
+    IRQ_I2C_SPI_SLV          = 43,
+    IRQ_PWA0                 = 45,
+    IRQ_PWA1                 = 46,
+    IRQ_SMI                  = 48,
+    IRQ_GPIO0                = 49,
+    IRQ_GPIO1                = 50,
+    IRQ_GPIO2                = 51,
+    IRQ_GPIO3                = 52,
+    IRQ_I2C                  = 53,
+    IRQ_SPI                  = 54,
+    IRQ_PCM                  = 55,
+    IRQ_UART                 = 57,
+    IRQ_FB                   = 62,
+    IRQ_ARM_TIMER            = 64,
+    IRQ_ARM_MAILBOX          = 65,
+    IRQ_ARM_DOORBELL0        = 66,
+    IRQ_ARM_DOORBELL1        = 67,
+    IRQ_GPU0_HALTED          = 68,
+    IRQ_GPU1_HALTED          = 69,
+    IRQ_ILLEGAL_ACCESS_TYPE1 = 70,
+    IRQ_ILLEGAL_ACCESS_TYPE0 = 71,
+};
+
+void enable_irq(enum IRQ irq);
+void disable_irq(enum IRQ irq);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_EXCEPTIONS_H
