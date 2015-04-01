@@ -1,4 +1,5 @@
-OBJS := boot.o arch_info.o uart.o kprintf.o entry.o exceptions.o main.o
+OBJS := boot.o arch_info.o uart.o kprintf.o entry.o exceptions.o
+OBJS += timer.o main.o
 
 CROSS ?= arm-none-eabi-
 CC    ?= $(CROSS)gcc

@@ -40,11 +40,20 @@ extern uint32_t peripheral_base;
 extern uint32_t led_act_pin;
 
 enum Base {
+    TIMER_BASE = 0x003000, // 0x??003000
     IRQ_BASE   = 0x00B000, // 0x??00B000
     UART0_BASE = 0x201000, // 0x??201000
 };
 
 enum Register {
+    TIMER_CS  = 0x00, // 0x??003000 System Timer Control/Status
+    TIMER_CLO = 0x04, // 0x??003004 System Timer Lower 32 bits
+    TIMER_CHI = 0x08, // 0x??003008 System Timer Higher 32 bits
+    TIMER_C0  = 0x0C, // 0x??00300C System Timer Compare 0
+    TIMER_C1  = 0x10, // 0x??003010 System Timer Compare 1
+    TIMER_C2  = 0x14, // 0x??003014 System Timer Compare 2
+    TIMER_C3  = 0x18, // 0x??003018 System Timer Compare 3
+
     IRQ_BASIC_PENDING = 0x200, // 0x??00B200
     IRQ_PENDING1      = 0x204, // 0x??00B204 
     IRQ_PENDING2      = 0x208, // 0x??00B208

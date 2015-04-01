@@ -23,6 +23,7 @@
 #include "arch_info.h"
 #include "kprintf.h"
 #include "exceptions.h"
+#include "timer.h"
 
 #define UNUSED(x) (void)(x)
 
@@ -34,18 +35,7 @@ void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
     arch_info_init(atag);
     exceptions_init();
 
-    kprintf("\ncalling SVC\n");
-    // calling svc from within svc clobbers the LR register, tell gcc about it
-    asm volatile ("svc #0" ::: "lr");
-
-    kprintf("\nundefine instruction 0xee011f51\n");
-    asm volatile (".word 0xee011f51");
-    
-    kprintf("\nunaligned access *(0x1)\n");
-    *(volatile uint32_t *)0x1;
-
-    kprintf("\nbreakpoint\n");
-    asm volatile ("bkpt");
+    timer_test();
     
     kprintf("\nGoodbye\n");
 }
