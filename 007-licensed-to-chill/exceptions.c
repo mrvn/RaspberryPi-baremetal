@@ -278,9 +278,16 @@ void handler_hypervisor_trap(Regs *regs, uint32_t num) {
     dump_regs(regs);
 }
 
+extern void handle_timer1(void);
+
 void handler_irq(Regs *regs, uint32_t num) {
-    kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
-    dump_regs(regs);
+    volatile uint32_t *pending1 = peripheral(IRQ_BASE, IRQ_PENDING1);
+    if ((*pending1 & (1U << 1)) != 0) {
+	handle_timer1();
+    } else {
+	kprintf("%s: Regs @ %p\n", EXCEPTION[num], regs);
+	dump_regs(regs);
+    }
 }
 
 void handler_fiq(Regs *regs, uint32_t num) {
