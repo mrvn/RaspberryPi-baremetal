@@ -3,10 +3,11 @@ Using the timer interrupt to sleep
 
 In the last demo the exception vector was introduced to catch and
 explain misbehaving code. But that also opens up the way to catch and
-handle interrupts. This demo uses the timer interrupt to turn the LEDs
-on the Raspberry Pi on and off at precise intervals. Yes, you read
-right, LEDs, plural. The power LED on the Raspberry Pi 2 can be
-software controlled to if the GPIO pins are reconfigured a bit.
+handle interrupts. This demo uses the timer interrupt to display the
+time since boot and turn the LEDs on the Raspberry Pi on and off at
+precise intervals. Yes, you read right, LEDs, plural. The power LED on
+the Raspberry Pi 2 can be software controlled to if the GPIO pins are
+reconfigured a bit.
 
 Background
 ==========
@@ -34,7 +35,7 @@ connected, some select GPU/VC interrupts and 2 bits indicating the 2
 remaining pending registers have a bit set that is not already present
 in the basic pending register. We are interested only in the timer
 interrupt, which is bit 0 in the basic pending register. All
-interrupts are level sensitive so they remain asserted until disabled
+interrupts are level sensitive so they remain asserted until masked
 or the interrupt source is cleared.
 
 The base address for ARM interrupt registers is at offset 0x0000B000
@@ -52,7 +53,8 @@ not be interfered with. The other 2 are free for use from the ARM
 side.
 
 The base address for system timer registers is at offset 0x00003000
-relative to the peripheral base address.
+relative to the peripheral base address. The VC uses compare registers
+0 and 2.
 
 This is not to be confused with the ARM timer at offset 0x0000B000
 (same as IRQs), which is derived form the system clock and can change
