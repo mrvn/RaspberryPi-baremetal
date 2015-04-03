@@ -4,24 +4,11 @@ Using the timer interrupt to sleep
 In the last demo the exception vector was introduced to catch and
 explain misbehaving code. But that also opens up the way to catch and
 handle interrupts. This demo uses the timer interrupt to display the
-time since boot and turn the LEDs on the Raspberry Pi on and off at
-precise intervals. Yes, you read right, LEDs, plural. The power LED on
-the Raspberry Pi 2 can be software controlled to if the GPIO pins are
-reconfigured a bit.
+time since boot every second and halt the cpu inbetween those using
+the WFI instruction.
 
 Background
 ==========
-
-LEDs
-----
-
-All Raspberry Pi models have a power and activity LED. The activity
-LED is setup at boot to be controlled by setting the GPIO output of
-the pin it is connected to to high or low. The power LED on the other
-hand, at least on the Raspberry Pi 2, is not configured as GPIO output
-and may have a pull-up or pull-down configured. But that can be
-reconfigured. The relevant GPIO pin for the power LED on the Raspberry
-Pi 2 is pin 35.
 
 IRQs
 ----
