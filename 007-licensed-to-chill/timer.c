@@ -38,12 +38,12 @@ static uint64_t count(void) {
     volatile uint32_t *lo = peripheral(TIMER_BASE, TIMER_CLO);
     return (((uint64_t)*hi) << 32) | *lo;
 }
-
+/*
 static uint32_t lowcount(void) {
     volatile uint32_t *lo = peripheral(TIMER_BASE, TIMER_CLO);
     return *lo;
 }
-
+*/
 static uint32_t cmp(uint32_t num) {
     enum Register reg =
 	(num < 2) ? ((num < 1) ? TIMER_C0 : TIMER_C1)
@@ -61,16 +61,16 @@ static void set_cmp(uint32_t num, uint32_t t) {
 }
 
 void timer_test(void) {
-    kprintf("timer CS = %#lx\n", status());
-    kprintf("timer count = %#llx\n", count());
-    kprintf("timer cmp 0 = %#lx\n", cmp(0));
-    kprintf("timer cmp 1 = %#lx\n", cmp(1));
-    kprintf("timer cmp 2 = %#lx\n", cmp(2));
-    kprintf("timer cmp 3 = %#lx\n", cmp(3));
+    kprintf("timer CS    = %#lx\n", status());
+    kprintf("timer count = %#18llx\n", count());
+    kprintf("timer cmp 0 = %#10lx\n", cmp(0));
+    kprintf("timer cmp 1 = %#10lx\n", cmp(1));
+    kprintf("timer cmp 2 = %#10lx\n", cmp(2));
+    kprintf("timer cmp 3 = %#10lx\n", cmp(3));
     kprintf("\n");
     
     // trigger on the second next second (at least one second from now)
-    set_cmp(1, lowcount() / 1000000 * 1000000 + 2000000);
+    set_cmp(1, count() / 1000000 * 1000000 + 2000000);
     
     // clear pending bit and enable irq
     ctrl_set(1U << 1);
@@ -84,27 +84,28 @@ void timer_test(void) {
 }
 
 void handle_timer1(void) {
-    uint64_t now = count();
-    kprintf("timer CS = %#lx\n", status());
-    kprintf("timer count = %#llx\n", count());
-    kprintf("timer cmp 0 = %#lx\n", cmp(0));
-    kprintf("timer cmp 1 = %#lx\n", cmp(1));
-    kprintf("timer cmp 2 = %#lx\n", cmp(2));
-    kprintf("timer cmp 3 = %#lx\n", cmp(3));
+    uint64_t t = count();
+    kprintf("timer CS    = %lu\n", status());
+    kprintf("timer count = %#18llx\n", t);
+    kprintf("timer cmp 0 = %#10lx\n", cmp(0));
+    kprintf("timer cmp 1 = %#10lx\n", cmp(1));
+    kprintf("timer cmp 2 = %#10lx\n", cmp(2));
+    kprintf("timer cmp 3 = %#10lx\n", cmp(3));
 
-    uint64_t seconds, minutes, hours;
-    seconds = now / 1000000;
-    now = now % 1000000;
-    minutes = seconds / 60;
-    seconds = seconds % 60;
-    hours = minutes / 60;
-    minutes = minutes % 60;
-    
-    kprintf("time = %llu:%02llu:%02llu.%06llu\n", hours, minutes, seconds, now);
+    uint32_t frac, seconds, minutes, hours, next;
+    frac = t % 1000000;
+    t /= 1000000;
+    next = t * 1000000 + 1000000;
+    seconds = t % 60;
+    t /= 60;
+    minutes = t % 60;
+    t /= 60;
+    hours = t;
+    kprintf("time = %lu:%02lu:%02lu.%06lu\n", hours, minutes, seconds, frac);
     kprintf("\n");
     
     // clear pending bit
     ctrl_set(1U << 1);
     // trigger one the next second mark
-    set_cmp(1, lowcount() / 1000000 * 1000000 + 1000000);
+    set_cmp(1, next);
 }
