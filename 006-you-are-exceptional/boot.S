@@ -55,8 +55,8 @@ constants:
 .ltorg
 
 .section ".bss"
-// 16k stack aligned to 4 byte
-.balign 4
+// 16k stack aligned to 8 byte
+.balign 8
 .global stack
 stack:
 	.fill	4096, 4, 0

@@ -58,10 +58,18 @@ exception_vector:
         mov     r0, sp
 	// move number for exception into second argument
 	mov	r1, #\num
+	// align stack to 8 byte and save original SP
+	// 8 byte alignment is required for ldrd but the exception may
+	// have happened while the stack was only 4 byte aligned
+	tst	sp, #7
+	subeq	sp, sp, #4
+	push	{r0}
 .endm
 
 // restore all registes and return from exception
 .macro restoreall
+	// restore unaligned stack
+	ldr	sp, [sp]
         // restore all regs from stack (+ LR for alignment)
         pop     {r0-r12, lr}
         // restore user space SP/LR and skip dummy
