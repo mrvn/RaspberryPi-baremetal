@@ -59,6 +59,6 @@ constants:
 .balign 8
 .global stack
 stack:
-	.fill	4096, 4, 0
+	.space	16384
 .global stack_top
 stack_top:
