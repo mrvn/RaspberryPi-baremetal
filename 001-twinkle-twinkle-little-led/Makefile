@@ -20,7 +20,7 @@ all: led-rpi.img led-rpi-b-plus.img led-rpi2.img
 	                  -c -o $@ $<
 
 %-rpi2.o: %.S
-	arm-none-eabi-gcc -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16 \
+	arm-none-eabi-gcc -march=armv7-a -mfloat-abi=hard -mfpu=neon \
 	                  -ffreestanding -nostdlib -D MODEL=2 \
 	                  -c -o $@ $<
 

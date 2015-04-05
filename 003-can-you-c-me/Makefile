@@ -4,7 +4,7 @@ CROSS ?= arm-none-eabi-
 CC    ?= $(CROSS)gcc
 
 ARCH_RPI  := -mcpu=arm1176jzf-s -mhard-float -mfpu=vfp
-ARCH_RPI2 := -march=armv7-a -mfloat-abi=hard -mfpu=vfpv3-d16
+ARCH_RPI2 := -march=armv7-a -mfloat-abi=hard -mfpu=neon
 
 ASFLAGS := -ffreestanding -nostdlib -D ASSEMBLY
 CFLAGS  := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99

@@ -8,7 +8,7 @@ ARCHFLAGS := -mcpu=arm1176jzf-s -mfloat-abi=soft
 
 # flags when using floating point (pass as soft but use fpu)
 ARCH_RPI  := -mcpu=arm1176jzf-s -mfloat-abi=softfp -mfpu=vfp
-ARCH_RPI2 := -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16
+ARCH_RPI2 := -march=armv7-a -mfloat-abi=softfp -mfpu=neon
 
 ASFLAGS := -ffreestanding -nostdlib -D ASSEMBLY
 CFLAGS  := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99
