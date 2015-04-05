@@ -1,0 +1,5 @@
+ASFLAGS boot.o += -Dboot
+
+OBJ y boot.o
+OBJ n bla.o
+OBJ $(CONFIG_BLUB) blub.o

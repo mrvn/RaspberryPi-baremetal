@@ -1,0 +1,3 @@
+OBJ y arch_info.o
+DIR y timer
+DIR y uart

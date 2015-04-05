@@ -1,0 +1,2 @@
+OBJ y entry.o exceptions.o
+OBJ y irq.o
