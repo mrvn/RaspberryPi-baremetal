@@ -26,7 +26,7 @@ _start:
 	// the bootloader passes 3 arguments:
 	// r0 = 0
 	// r1 = 0xC42 (ID for Raspberry Pi)
-	// r2 = ATAGS (see later demo)
+	// r2 = ATAGS
 	// those must be preserved to the kernel_main function
 	
 	// initialize stack pointer
