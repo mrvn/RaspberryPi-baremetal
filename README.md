@@ -40,3 +40,4 @@ List of examples
 | 005-the-fine-printf | Introducing the family of printf functions |
 | 006-you-are-exceptional | Add exception handling |
 | 007-licensed-to-chill | Using the timer interrupt to sleep |
+| 008-trust-but-verify | Dotting all the i's and crossing all the t's |
