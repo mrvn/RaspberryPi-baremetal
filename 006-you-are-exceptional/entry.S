@@ -41,13 +41,13 @@ exception_vector:
 	b	stub_irq
 	b	stub_fiq
 
-// save all registers and SPSR on the SYS stack, (LR corrected by offset)
+// save all registers and SPSR on the SVC stack, (LR corrected by offset)
 .macro saveall, num, offset
 	// corrcet lr
 	sub     lr, #\offset
-        // save SPSR and LR onto the SYS stack
+        // save SPSR and LR onto the SVC stack
         srsdb   #0x13!
-        // switch to SYS mode, interrupts disabled
+        // switch to SVC mode, interrupts disabled
         cpsid   i, #0x13
         // save user space SP/LR
         sub     sp, #8
