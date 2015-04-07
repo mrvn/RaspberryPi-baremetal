@@ -64,8 +64,8 @@ EOF
 	    for OBJ in $REST; do
 		case "$OBJ" in
 		    (*.lto)
-			printf "%s_tmp-%s.lto: %s%s\n" \
-			       "$DIR" "$ARG" "$DIR" "$OBJ"
+			printf "%s_tmp-%s.%s: %s%s\n" \
+			       "$DIR" "$ARG" "$TGT" "$DIR" "$OBJ"
 			;;
 		    (*.o)
 			printf "%s_tmp-%s.o: %s%s\n" \

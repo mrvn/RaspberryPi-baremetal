@@ -61,7 +61,7 @@ void handler_fiq(Regs *regs, uint32_t num) {
     dump_regs(regs);
 }
 
-uint32_t cpsr_read() {
+uint32_t cpsr_read(void) {
     uint32_t t;
     asm volatile ("mrs %[t], CPSR" : [t] "=r" (t));
     return t;

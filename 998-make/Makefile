@@ -44,21 +44,65 @@ ARCHFLAGS := -mcpu=arm1176jzf-s -mfloat-abi=soft
 # Raspberry Pi 2
 #ARCHFLAGS := -march=armv7-a -mfloat-abi=softfp -mfpu=neon
 
-BASEFLAGS   :=-ffreestanding -nostdlib -O2 -W -Wall -g -fvisibility=hidden
-ASFLAGS     := $(BASEFLAGS) -D ASSEMBLY 
-CFLAGS      := $(BASEFLAGS) -std=gnu99
-CXXFLAGS    := $(BASEFLAGS) -std=g++11
-LDFLAGS     := $(BASEFLAGS)
+# optimization is needed for many warnings, the code is also
+# unspeakably horribly without, also compile with debug symbols
+BASEFLAFS := -O2 -g
 
+# assert that compilation targets a freestanding environment
+BASEFLAGS += -ffreestanding
+
+# don't waste a register for the frame pointer if not needed
+# -mpoke-function-name below forces the use of frame pointers
+# BASEFLAFS += -fomit-frame-pointer
+
+# hide internal symbols, this enforces the API in directories with
+# DOLTO or LDSCRIPT in Makefile.obj. Hidden symbols inside such a
+# directory can not be used from outside.
+BASEFLAGS += -fvisibility=hidden
+
+# Write the name of each function into the text section, directly
+# preceding the function prologue. When performing a stack backtrace,
+# code can inspect the value of `pc' stored at `fp + 0'.  If the trace
+# function then looks at location `pc - 12' and the top 8 bits are
+# set, then we know that there is a function name embedded immediately
+# preceding this location and has length `((pc[-3]) & 0xff000000)'.
+BASEFLAGS += -mpoke-function-name
+
+# Enable lots and lots of warnings
+BASEFLAGS   += -W -Wall -Wextra -Wshadow -Wcast-align -Wwrite-strings
+BASEFLAGS   += -Wredundant-decls -Winline
+BASEFLAGS   += -Wno-endif-labels -Wfloat-equal
+BASEFLAGS   += -Wformat=2 -Winit-self
+BASEFLAGS   += -Winvalid-pch -Wmissing-format-attribute
+BASEFLAGS   += -Wmissing-include-dirs
+BASEFLAGS   += -Wredundant-decls -Wshadow
+BASEFLAGS   += -Wswitch -Wsystem-headers
+BASEFLAGS   += -Wno-pragmas
+BASEFLAGS   += -Wwrite-strings -Wdisabled-optimization -Wpointer-arith
+
+# Fail on warnings except for unused variable or parameter
+BASEFLAGS   += -Werror -Wno-error=unused-variable -Wno-error=unused-parameter
+
+# Language specific options
+# Assembly files have ASSEMBLY defined. This can be used in include files.
+ASFLAGS     := $(BASEFLAGS) -D ASSEMBLY 
+# Modern C and warn about missing (void) for functions without arguments.
+CFLAGS      := $(BASEFLAGS) -std=gnu99 -Wstrict-prototypes
+# Modern C++ but no exceptions or runtime type informations.
+CXXFLAGS    := $(BASEFLAGS) -std=g++14 -fno-exceptions -fno-rtti
+# Don't link in libg, libm or libc (or libgcc but we add that back manually)
+LDFLAGS     := $(BASEFLAGS) -nostdlib
+
+# no user serviceable parts below
+
+# Needed for partial LTO
 export COLLECT_GCC := $(CC)
 export COLLECT_GCC_OPTIONS := $(BASEFLAGS)
-
 LTO_PLUGIN  := $(shell $(CC) --print-file-name liblto_plugin.so)
 LTO_WRAPPER := $(shell $(CC) --print-prog-name lto-wrapper)
 LD_NO_LTO  = $(CROSS)ld -plugin $(LTO_PLUGIN) -plugin-opt=$(LTO_WRAPPER)
 LD_NO_LTO += -plugin-opt=-fresolution=$@.res
 
-# no user serviceable parts below
 DEPENDFLAGS := -MD -MP
 INCLUDE := -I$(SRCDIR) -I$(SRCDIR)/include
 
@@ -78,7 +122,7 @@ all: kernel.img
 %.elf: link-arm-eabi.ld _tmp-y.lto _tmp-y.o
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) LINKING $@
-	$(Q) $(CC) $(LDFLAGS) -T$(SRCDIR)/link-arm-eabi.ld -o $@ -Wl,--start-group _tmp-y.lto _tmp-y.o -lgcc -Wl,--end-group
+	$(Q) $(CC) $(LDFLAGS) -flto -T$(SRCDIR)/link-arm-eabi.ld -o $@ -Wl,--start-group _tmp-y.lto _tmp-y.o -lgcc -Wl,--end-group
 
 # assembly file
 %.o: %.S
@@ -86,7 +130,7 @@ all: kernel.img
 	$(L) AS $@ '$(ASFLAGS_TXT)'
 	$(Q) $(CC) $(ASFLAGS) -c -o $@ $<
 
-# C file
+# C file (LTO)
 %.lto: %.c
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) CC $@ '$(CFLAGS_TXT)'
@@ -98,7 +142,7 @@ all: kernel.img
 	$(L) CC $@ '$(CFLAGS_TXT)'
 	$(Q) $(CC) $(CFLAGS) -c -o $@ $<
 
-# C++ file
+# C++ file (LTO)
 %.lto: %.cc
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) CXX $@ '$(CXXFLAGS_TXT)'
@@ -110,6 +154,7 @@ all: kernel.img
 	$(L) CXX $@ '$(CXXFLAGS_TXT)'
 	$(Q) $(CXX) $(CXXFLAGS) -c -o $@ $<
 
+# dummy file because we can't link _tmp-y.* without any input files
 _empty.c:
 	$(L) CREATE $@
 	$(Q) touch $@
