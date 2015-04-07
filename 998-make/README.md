@@ -18,7 +18,7 @@ Features:
 1) out-of-tree build / per arch build directory
 
 The generated files are stored in _&lt;arch triplet&gt; leaving the source
-directly nice and clean.
+directory nice and clean.
 
 2) non-recursive Makefile
 
@@ -39,12 +39,13 @@ again.
 When the number of source files exceeds a certain number the command
 line length would exceed the allowed maximum. To avoid that all the
 object files in a directory are linked together into a temporary
-library (_built-lto/obj-y.o). If the directory has subdirectories then
-the _built-lto/obj-y.o files of the subdirectories are linked in as well.
+library (_tmp-y.o and _tmp-y.lto). If the directory has subdirectories
+then the _tmp-y.o and _tmp-y.lto files of the subdirectories are linked in
+as well.
 
 When a source file changes the automatic dependencies will cause it to
-be recompiled, followed by the _built-lto/obj-y.o file for that directory
-and then its parent up to the top directory.
+be recompiled, followed by the _tmp-y.o and _tmp-y.lto files for that
+directory and then its parent up to the top directory.
 
 5) sources can be conditional
 
