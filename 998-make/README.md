@@ -2,7 +2,7 @@ A more complex build system
 ===========================
 
 The build system is made to be compact and fast. There is a single
-main Makefile of just 114 lines that contains all the logic to compile
+main Makefile of just 201 lines that contains all the logic to compile
 stuff and a small helper (target.mk) to switch to the build directory.
 Every directory further contains a Makefile.obj listing the sub
 directories and object files and special flags, if any, used to
