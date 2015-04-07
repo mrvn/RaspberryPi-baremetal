@@ -44,18 +44,14 @@ ARCHFLAGS := -mcpu=arm1176jzf-s -mfloat-abi=soft
 # Raspberry Pi 2
 #ARCHFLAGS := -march=armv7-a -mfloat-abi=softfp -mfpu=neon
 
-LTO := -flto
-
-BASEFLAGS   :=-ffreestanding -nostdlib -O2 -W -Wall -g
-ASFLAGS     := $(BASEFLAGS) -fvisibility=hidden $(LTO) -D ASSEMBLY 
-CFLAGS      := $(BASEFLAGS) -fvisibility=hidden $(LTO) -std=gnu99
-CXXFLAGS    := $(BASEFLAGS) -fvisibility=hidden $(LTO) -std=g++11
+BASEFLAGS   :=-ffreestanding -nostdlib -O2 -W -Wall -g -fvisibility=hidden
+ASFLAGS     := $(BASEFLAGS) -D ASSEMBLY 
+CFLAGS      := $(BASEFLAGS) -std=gnu99
+CXXFLAGS    := $(BASEFLAGS) -std=g++11
 LDFLAGS     := $(BASEFLAGS)
 
 export COLLECT_GCC := $(CC)
 export COLLECT_GCC_OPTIONS := $(BASEFLAGS)
-$(info export COLLECT_GCC=$(COLLECT_GCC))
-$(info export COLLECT_GCC_OPTIONS=$(COLLECT_GCC_OPTIONS))
 
 LTO_PLUGIN  := $(shell $(CC) --print-file-name liblto_plugin.so)
 LTO_WRAPPER := $(shell $(CC) --print-prog-name lto-wrapper)
@@ -79,10 +75,10 @@ all: kernel.img
 	$(Q) $(OBJCOPY) $< -O binary $@
 
 # final link pass
-%.elf: link-arm-eabi.ld _built-lto-y.o _built-obj-y.o
+%.elf: link-arm-eabi.ld _tmp-y.lto _tmp-y.o
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) LINKING $@
-	$(Q) $(CC) $(LDFLAGS) -T$(SRCDIR)/link-arm-eabi.ld -o $@ -Wl,--start-group _built-obj-y.o _built-lto-y.o -lgcc -Wl,--end-group
+	$(Q) $(CC) $(LDFLAGS) -T$(SRCDIR)/link-arm-eabi.ld -o $@ -Wl,--start-group _tmp-y.lto _tmp-y.o -lgcc -Wl,--end-group
 
 # assembly file
 %.o: %.S
@@ -91,10 +87,22 @@ all: kernel.img
 	$(Q) $(CC) $(ASFLAGS) -c -o $@ $<
 
 # C file
+%.lto: %.c
+	@[ -d $@ ] || mkdir -p $(dir $@)
+	$(L) CC $@ '$(CFLAGS_TXT)'
+	$(Q) $(CC) $(CFLAGS) -flto -c -o $@ $<
+
+# C file
 %.o: %.c
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) CC $@ '$(CFLAGS_TXT)'
 	$(Q) $(CC) $(CFLAGS) -c -o $@ $<
+
+# C++ file
+%.lto: %.cc
+	@[ -d $@ ] || mkdir -p $(dir $@)
+	$(L) CXX $@ '$(CXXFLAGS_TXT)'
+	$(Q) $(CXX) $(CXXFLAGS) -flto -c -o $@ $<
 
 # C++ file
 %.o: %.cc
@@ -106,7 +114,7 @@ _empty.c:
 	$(L) CREATE $@
 	$(Q) touch $@
 
-_empty.nolto: _empty.c
+_empty.o: _empty.c
 	$(L) CC $@
 	$(Q) $(CC) -c -o $@ $<
 
@@ -114,17 +122,17 @@ _empty.lto: _empty.c
 	$(L) CC $@
 	$(Q) $(CC) $(LTO) -c -o $@ $<
 
-# merge all object files and built-lto-y.o of subdirectories into built-lto-y.o
-# empty if NOLTO or LDSCRIPT is specified for that directory
-%built-lto-y.o:
+# merge all object files and _tmp-y.lto of subdirectories into _tmp-y.lto
+# empty if DOLTO or LDSCRIPT is specified for that directory
+%tmp-y.lto:
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) GATHER $@ '$(LD_TXT)'
 	$(Q) $(LOCAL_LD) $(LDSCRIPT) -i -o $@ --start-group $+ --end-group
 
-# merge all object files and built-obj-y.o of subdirectories into built-obj-y.o
-# merges built-lto-y.o of subdirectories if NOLTO or LDSCRIPT is specified for
-# that directory
-%built-obj-y.o:
+# merge all object files and _tmp-y.o of subdirectories into _tmp-y.o
+# also merges _tmp-y.lto of subdirectories if DOLTO or LDSCRIPT is specified
+# for that directory
+%tmp-y.o:
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) GATHER $@ '$(LD_TXT)'
 	$(Q) $(LOCAL_LD) $(LDSCRIPT) -i -o $@ --start-group $+ --end-group

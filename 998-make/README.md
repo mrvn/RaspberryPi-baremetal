@@ -85,23 +85,28 @@ processed. Using "make VERBOSE=1" will print the full command instead.
 
 9) allows partial use of link time optimization
 
-All c/c++ files are build with -flto. If a Makefile.obj for a
-directory starts with NOLTO then link time optimization is performed
-when building the _built-lto/obj-y.o temporary library. The
-_built-lto-y.o actually becomes empty and all object data ends up in
-_build-obj-y.o.
+Object files are compiled with -flto if they use a .lto extension. By
+using foo.o or foo.lto link time optimization can be selected on a
+file by file basis.
+
+Further link time optimization can be limited to within a subdirectory
+by specifying DOLTO as first line in Makefile.obj. This causes link
+time optimization to be performed on all the objects files inside that
+directory as well as the _tmp-y.o and _tmp-y.lto temporary libraries
+from subdirectories. The result is put into _tmp-y.o and the
+_tmp-y.lto remains empty.
 
 10) allows remapping sections for directories
 
 If a Makefile.obj for a directory starts with LDSCRIPT .<suffix> then
 the .text, .rodata, .data and .bss sections are mapped to
 .text.<suffix>, .rodata.<suffix>, .data.<suffix>, .bss.<suffix>
-respectively. For this to work LDSCRIPT implies NOLTO.
+respectively. For this to work LDSCRIPT implies DOLTO.
+
 
 ToDo:
+-----
 
-1) enable/disable LTO per file
-
-2) generate linker script so the remapped sections of each future
+1) generate linker script so the remapped sections of each future
 process are mapped independently in low memory (all having overlapping
 VMA but unique LMA).

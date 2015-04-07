@@ -1,6 +1,6 @@
 LDSCRIPT .boot
 ASFLAGS boot.o += -Dboot
 
-ASM y boot.o
+OBJ y boot.o
 OBJ n bla.o
 OBJ $(CONFIG_BLUB) blub.o
