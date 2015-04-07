@@ -39,11 +39,11 @@ again.
 When the number of source files exceeds a certain number the command
 line length would exceed the allowed maximum. To avoid that all the
 object files in a directory are linked together into a temporary
-library (_built-in-y.o). If the directory has subdirectories then the
-_built-in-y.o files of the subdirectories are linked in as well.
+library (_built-lto/obj-y.o). If the directory has subdirectories then
+the _built-lto/obj-y.o files of the subdirectories are linked in as well.
 
 When a source file changes the automatic dependencies will cause it to
-be recompiled, followed by the _built-in-y.o file for that directory
+be recompiled, followed by the _built-lto/obj-y.o file for that directory
 and then its parent up to the top directory.
 
 5) sources can be conditional
@@ -83,18 +83,25 @@ unreadable. Therefore by default running just make will give terse
 output listing just the action and name of the object file being
 processed. Using "make VERBOSE=1" will print the full command instead.
 
+9) allows partial use of link time optimization
+
+All c/c++ files are build with -flto. If a Makefile.obj for a
+directory starts with NOLTO then link time optimization is performed
+when building the _built-lto/obj-y.o temporary library. The
+_built-lto-y.o actually becomes empty and all object data ends up in
+_build-obj-y.o.
+
+10) allows remapping sections for directories
+
+If a Makefile.obj for a directory starts with LDSCRIPT .<suffix> then
+the .text, .rodata, .data and .bss sections are mapped to
+.text.<suffix>, .rodata.<suffix>, .data.<suffix>, .bss.<suffix>
+respectively. For this to work LDSCRIPT implies NOLTO.
 
 ToDo:
------
 
-1) support remapping sections for subdirectories, e.g. .text from
-drivers/uart could become .drivers.uart.text, .data could become
-.drivers.uart.data and so on.
+1) enable/disable LTO per file
 
-2) support using -flto within a subdirectory but not across to other
-directories. Together with 1 this would allow optimizing drivers/uart
-as a self contained object that can be run as self contained process.
-
-3) generate linker script so the remapped sections of each future
+2) generate linker script so the remapped sections of each future
 process are mapped independently in low memory (all having overlapping
 VMA but unique LMA).

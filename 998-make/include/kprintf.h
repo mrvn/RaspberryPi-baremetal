@@ -25,18 +25,18 @@
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS
-void kprintf(const char *format, ...) __PRINTFLIKE(1, 2);
+EXPORT void kprintf(const char *format, ...) __PRINTFLIKE(1, 2);
 
-int snprintf(char *buf, size_t size, const char *format, ...) __PRINTFLIKE(3, 4);
+EXPORT int snprintf(char *buf, size_t size, const char *format, ...) __PRINTFLIKE(3, 4);
 
-int vsnprintf(char *buf, size_t size, const char *format, va_list args);
+EXPORT int vsnprintf(char *buf, size_t size, const char *format, va_list args);
 
 typedef void (*vcprintf_callback_t)(char c, void *state);
 
-void cprintf(vcprintf_callback_t callback, void *state, const char* format,
+EXPORT void cprintf(vcprintf_callback_t callback, void *state, const char* format,
 	     ...) __PRINTFLIKE(3, 4);
 
-void vcprintf(vcprintf_callback_t callback, void *state, const char* format,
+EXPORT void vcprintf(vcprintf_callback_t callback, void *state, const char* format,
 	      va_list args);
 __END_DECLS
 

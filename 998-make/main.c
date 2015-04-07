@@ -28,7 +28,7 @@
 #define UNUSED(x) (void)(x)
 
 // main C function, called from boot.S
-void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
+__attribute__((visibility("default"))) void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
     UNUSED(r0); // always 0
     UNUSED(id); // 0xC42 for Raspberry Pi
 

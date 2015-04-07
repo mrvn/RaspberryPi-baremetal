@@ -46,7 +46,7 @@ typedef struct Regs {
     uint32_t spsr;
 } Regs;
 
-void exceptions_init(void);
+EXPORT void exceptions_init(void);
 void dump_regs(const Regs *regs);
 __END_DECLS
 

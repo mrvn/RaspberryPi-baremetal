@@ -99,7 +99,7 @@ void timer_test(void) {
     }
 }
 
-void handle_timer1(void) {
+EXPORT void handle_timer1(void) {
     uint64_t t = count();
     kprintf("timer CS    = %lu\n", status());
     kprintf("timer count = %#18llx\n", t);

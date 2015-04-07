@@ -54,7 +54,7 @@ __CONCAT(NAME, _reg)(enum __CONCAT(NAME, _Reg) reg) {			\
 
 typedef struct Atag Atag;
 
-void arch_info_init(const Atag *atag);
+EXPORT void arch_info_init(const Atag *atag);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_ARCHINFO_H

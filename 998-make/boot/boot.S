@@ -17,10 +17,9 @@
 
 /* assembly code to bootstrap a C environment */
 
-// this code muse come first and the linker script places section
-// .text.boot first
-.section ".text.boot"
+.section ".text"
 .global _start
+.type _start, STT_FUNC
 
 _start:
 	// the bootloader passes 3 arguments:
@@ -46,6 +45,7 @@ _start:
 
 	// halt cpu
 .global halt
+.type _halt, STT_FUNC
 halt:
 	wfe
 	b halt
@@ -58,7 +58,9 @@ constants:
 // 16k stack aligned to 8 byte
 .balign 8
 .global stack
+.type stack, STT_OBJECT
 stack:
 	.space	16384
 .global stack_top
+.type stack_stop, STT_OBJECT
 stack_top:

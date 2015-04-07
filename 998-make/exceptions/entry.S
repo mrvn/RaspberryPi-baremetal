@@ -31,6 +31,7 @@
 .section ".text"
 .balign 32
 .global exception_vector
+.type exception_vector, STT_FUNC
 exception_vector:
 	b	stub_reset
 	b	stub_undef
@@ -84,6 +85,7 @@ exception_vector:
 
 .macro	make, num, offset, name
 	.global	stub_\name
+	.type	stub_\name, STT_FUNC
 stub_\name:
 	saveall	\num, \offset
 	bl	handler_\name
@@ -101,6 +103,8 @@ make 6, 4, irq
 make 7, 4, fiq
 
 
+.global	panic
+.type	panic, STT_FUNC
 panic:
 	ldr	r0, =0x3F200020
 	ldr	r1, =0x3F20002C

@@ -44,10 +44,23 @@ ARCHFLAGS := -mcpu=arm1176jzf-s -mfloat-abi=soft
 # Raspberry Pi 2
 #ARCHFLAGS := -march=armv7-a -mfloat-abi=softfp -mfpu=neon
 
-ASFLAGS  := -ffreestanding -nostdlib -D ASSEMBLY
-CFLAGS   := -ffreestanding -nostdlib -O2 -W -Wall -std=gnu99
-CXXFLAGS := -ffreestanding -nostdlib -O2 -W -Wall -std=g++11
-LDFLAGS  := -ffreestanding -nostdlib
+LTO := -flto
+
+BASEFLAGS   :=-ffreestanding -nostdlib -O2 -W -Wall -g
+ASFLAGS     := $(BASEFLAGS) -fvisibility=hidden $(LTO) -D ASSEMBLY 
+CFLAGS      := $(BASEFLAGS) -fvisibility=hidden $(LTO) -std=gnu99
+CXXFLAGS    := $(BASEFLAGS) -fvisibility=hidden $(LTO) -std=g++11
+LDFLAGS     := $(BASEFLAGS)
+
+export COLLECT_GCC := $(CC)
+export COLLECT_GCC_OPTIONS := $(BASEFLAGS)
+$(info export COLLECT_GCC=$(COLLECT_GCC))
+$(info export COLLECT_GCC_OPTIONS=$(COLLECT_GCC_OPTIONS))
+
+LTO_PLUGIN  := $(shell $(CC) --print-file-name liblto_plugin.so)
+LTO_WRAPPER := $(shell $(CC) --print-prog-name lto-wrapper)
+LD_NO_LTO  = $(CROSS)ld -plugin $(LTO_PLUGIN) -plugin-opt=$(LTO_WRAPPER)
+LD_NO_LTO += -plugin-opt=-fresolution=$@.res
 
 # no user serviceable parts below
 DEPENDFLAGS := -MD -MP
@@ -66,34 +79,55 @@ all: kernel.img
 	$(Q) $(OBJCOPY) $< -O binary $@
 
 # final link pass
-%.elf: link-arm-eabi.ld _built-in-y.o
+%.elf: link-arm-eabi.ld _built-lto-y.o _built-obj-y.o
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) LINKING $@
-	$(Q) $(CC) $(LDFLAGS) -T$(SRCDIR)/link-arm-eabi.ld -o $@ _built-in-y.o -lgcc
+	$(Q) $(CC) $(LDFLAGS) -T$(SRCDIR)/link-arm-eabi.ld -o $@ -Wl,--start-group _built-obj-y.o _built-lto-y.o -lgcc -Wl,--end-group
 
 # assembly file
 %.o: %.S
 	@[ -d $@ ] || mkdir -p $(dir $@)
-	$(L) AS $@ '$(TXT)'
+	$(L) AS $@ '$(ASFLAGS_TXT)'
 	$(Q) $(CC) $(ASFLAGS) -c -o $@ $<
 
 # C file
 %.o: %.c
 	@[ -d $@ ] || mkdir -p $(dir $@)
-	$(L) CC $@ '$(TXT)'
+	$(L) CC $@ '$(CFLAGS_TXT)'
 	$(Q) $(CC) $(CFLAGS) -c -o $@ $<
 
 # C++ file
 %.o: %.cc
 	@[ -d $@ ] || mkdir -p $(dir $@)
-	$(L) CXX $@ '$(TXT)'
+	$(L) CXX $@ '$(CXXFLAGS_TXT)'
 	$(Q) $(CXX) $(CXXFLAGS) -c -o $@ $<
 
-# merge all object files and build-in-y.o of subdirs into build-in-y.o
-%built-in-y.o:
+_empty.c:
+	$(L) CREATE $@
+	$(Q) touch $@
+
+_empty.nolto: _empty.c
+	$(L) CC $@
+	$(Q) $(CC) -c -o $@ $<
+
+_empty.lto: _empty.c
+	$(L) CC $@
+	$(Q) $(CC) $(LTO) -c -o $@ $<
+
+# merge all object files and built-lto-y.o of subdirectories into built-lto-y.o
+# empty if NOLTO or LDSCRIPT is specified for that directory
+%built-lto-y.o:
 	@[ -d $@ ] || mkdir -p $(dir $@)
-	$(L) GATHER $@
-	$(Q) $(LD) -i -o $@ $+
+	$(L) GATHER $@ '$(LD_TXT)'
+	$(Q) $(LOCAL_LD) $(LDSCRIPT) -i -o $@ --start-group $+ --end-group
+
+# merge all object files and built-obj-y.o of subdirectories into built-obj-y.o
+# merges built-lto-y.o of subdirectories if NOLTO or LDSCRIPT is specified for
+# that directory
+%built-obj-y.o:
+	@[ -d $@ ] || mkdir -p $(dir $@)
+	$(L) GATHER $@ '$(LD_TXT)'
+	$(Q) $(LOCAL_LD) $(LDSCRIPT) -i -o $@ --start-group $+ --end-group
 
 # generate Makefiles for all diretories
 %Makefile.mk: scripts/gen-Makefile.mk
@@ -106,7 +140,7 @@ scripts/gen-Makefile.mk: ;
 
 # include all the generated Makefiles and automatic dependencies
 -include $(MAKEFILE_MKS)
--include *.d
+-include $(shell find -name "*.d")
 
 # stop make from deleting the intermediate files
 .PRECIOUS: %.elf %.o

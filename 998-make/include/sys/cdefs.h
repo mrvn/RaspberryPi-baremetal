@@ -92,4 +92,7 @@
 /* format string checking for printf like functions */
 #define __PRINTFLIKE(__fmt,__varargs) __attribute__((__format__ (__printf__, __fmt, __varargs)))
 
+/* Visibility */
+#define EXPORT __attribute__((visibility("default")))
+
 #endif	 /* sys/cdefs.h */

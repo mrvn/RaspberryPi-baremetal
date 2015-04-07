@@ -25,7 +25,7 @@
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS
-void timer_test(void);
+EXPORT void timer_test(void);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_TIMER_H

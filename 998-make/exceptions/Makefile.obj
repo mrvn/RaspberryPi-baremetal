@@ -1,2 +1,3 @@
-OBJ y entry.o exceptions.o
+ASM y entry.o
+OBJ y exceptions.o
 OBJ y irq.o

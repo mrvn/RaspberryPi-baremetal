@@ -25,9 +25,9 @@
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS
-void putc(char c);
-char getc(void);
-void puts(const char *str);
+EXPORT void putc(char c);
+EXPORT char getc(void);
+EXPORT void puts(const char *str);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_UART_H

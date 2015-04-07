@@ -23,8 +23,11 @@ SECTIONS
     /* Starts at LOADER_ADDR. */
     . = 0x8000;
     .text : {
-        KEEP(*(.text.boot))
+    	*(.text.boot)
         *(.text)
+    }
+    .rel.plt : {
+    	*(.rel.plt)
     }
     .rodata : {
 	*(.rodata)

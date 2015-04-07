@@ -26,10 +26,10 @@
 
 __BEGIN_DECLS
 typedef struct Regs Regs;
-void handler_irq(Regs *regs, uint32_t num);
-void handler_fiq(Regs *regs, uint32_t num);
-void enable_irqs(void);
-void disable_irqs(void);
+EXPORT void handler_irq(Regs *regs, uint32_t num);
+EXPORT void handler_fiq(Regs *regs, uint32_t num);
+EXPORT void enable_irqs(void);
+EXPORT void disable_irqs(void);
 
 enum IRQ {
     //IRQ_TIMER0               =  0, // GPU used
@@ -60,8 +60,8 @@ enum IRQ {
     IRQ_ILLEGAL_ACCESS_TYPE0 = 71,
 };
 
-void enable_irq(enum IRQ irq);
-void disable_irq(enum IRQ irq);
+EXPORT void enable_irq(enum IRQ irq);
+EXPORT void disable_irq(enum IRQ irq);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_IRQ_H
