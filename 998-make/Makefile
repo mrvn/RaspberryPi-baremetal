@@ -122,7 +122,7 @@ all: kernel.img
 %.elf: link-arm-eabi.ld _tmp-y.lto _tmp-y.o
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) LINKING $@
-	$(Q) $(CC) $(LDFLAGS) -flto -T$(SRCDIR)/link-arm-eabi.ld -o $@ -Wl,--start-group _tmp-y.lto _tmp-y.o -lgcc -Wl,--end-group
+	$(Q) $(CC) $(LDFLAGS) -flto=jobserver -T$(SRCDIR)/link-arm-eabi.ld -o $@ -Wl,--start-group _tmp-y.lto _tmp-y.o -lgcc -Wl,--end-group
 
 # assembly file
 %.o: %.S
@@ -134,7 +134,7 @@ all: kernel.img
 %.lto: %.c
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) CC $@ '$(CFLAGS_TXT)'
-	$(Q) $(CC) $(CFLAGS) -flto -c -o $@ $<
+	$(Q) $(CC) $(CFLAGS) -flto=jobserver -c -o $@ $<
 
 # C file
 %.o: %.c
@@ -146,7 +146,7 @@ all: kernel.img
 %.lto: %.cc
 	@[ -d $@ ] || mkdir -p $(dir $@)
 	$(L) CXX $@ '$(CXXFLAGS_TXT)'
-	$(Q) $(CXX) $(CXXFLAGS) -flto -c -o $@ $<
+	$(Q) $(CXX) $(CXXFLAGS) -flto=jobserver -c -o $@ $<
 
 # C++ file
 %.o: %.cc
