@@ -23,6 +23,7 @@
 #include "kprintf.h"
 #include "exceptions.h"
 #include "peripherals.h"
+#include "timer.h"
 
 enum IRQ_Reg {
     IRQ_BASIC_PENDING = 0x200, // 0x??00B200
@@ -39,39 +40,25 @@ enum IRQ_Reg {
 
 PERIPHERAL_BASE(IRQ)
 
-extern void handle_timer1(void);
-
 void handler_irq(Regs *regs, uint32_t num) {
+    PERIPHERAL_ENTER(lock, NULL, IRQ_BASE);
+
     (void)num;
-    // might be in the middle of accessing a peripheral so always use a
-    // memory barrier here before switching to the irq peripheral
-    dmb();
-    enum Base saved_base = last_peripheral;
     volatile uint32_t *pending1 = IRQ_reg(IRQ_PENDING1);
     if ((*pending1 & (1U << 1)) != 0) {
-	handle_timer1();
+	handle_timer1(&lock);
     } else {
 	kprintf("%s: Regs @ %p\n", "IRQ", regs);
 	dump_regs(regs);
     }
-    // might have been in the middle of accessing a peripheral so always use a
-    // memory barrier here before returning there
-    dmb();
-    last_peripheral = saved_base;
+
+    PERIPHERAL_LEAVE(lock);
 }
 
 void handler_fiq(Regs *regs, uint32_t num) {
     (void)num;
-    // might be in the middle of accessing a peripheral so always use a
-    // memory barrier here before switching to the irq peripheral
-    dmb();
-    enum Base saved_base = last_peripheral;
     kprintf("%s: Regs @ %p\n", "FIQ", regs);
     dump_regs(regs);
-    // might have been in the middle of accessing a peripheral so always use a
-    // memory barrier here before returning there
-    dmb();
-    last_peripheral = saved_base;
 }
 
 uint32_t cpsr_read() {
@@ -101,20 +88,26 @@ void disable_irqs(void) {
     cpsr_write_c(cpsr);
 }
 
-void enable_irq(enum IRQ irq) {
-    peripheral_use(IRQ_BASE);
+void enable_irq(PeripheralLock *prev, enum IRQ irq) {
+    PERIPHERAL_ENTER(lock, prev, IRQ_BASE);
+
     enum IRQ_Reg reg =
 	(irq < 32) ? IRQ_ENABLE1
 	           : ((irq < 64) ? IRQ_ENABLE2 : IRQ_ENABLE_BASIC);
     volatile uint32_t * enable = IRQ_reg(reg);
     *enable = 1U << (irq % 32);
+
+    PERIPHERAL_LEAVE(lock);
 }
 
-void disable_irq(enum IRQ irq) {
-    peripheral_use(IRQ_BASE);
+void disable_irq(PeripheralLock *prev, enum IRQ irq) {
+    PERIPHERAL_ENTER(lock, prev, IRQ_BASE);
+
     enum IRQ_Reg reg =
 	(irq < 32) ? IRQ_DISABLE1
 	           : ((irq < 64) ? IRQ_DISABLE2 : IRQ_DISABLE_BASIC);
     volatile uint32_t * disable = IRQ_reg(reg);
     *disable = 1U << (irq % 32);
+
+    PERIPHERAL_LEAVE(lock);
 }

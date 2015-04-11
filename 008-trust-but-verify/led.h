@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <sys/cdefs.h>
 #include <stdbool.h>
+#include "peripherals.h"
 
 __BEGIN_DECLS
 enum LED {
@@ -31,8 +32,8 @@ enum LED {
     LED_PWR,
 };
 
-void led_set(enum LED led, bool state);
-void led_toggle(enum LED led);
+void led_set(PeripheralLock *prev, enum LED led, bool state);
+void led_toggle(PeripheralLock *prev, enum LED led);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_LED_H

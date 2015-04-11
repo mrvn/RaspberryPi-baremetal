@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <sys/cdefs.h>
 #include <stdbool.h>
+#include "peripherals.h"
 
 __BEGIN_DECLS
 enum FSel {
@@ -34,8 +35,9 @@ enum PullUpDown {
     OFF, UP, DOWN,
 };
 
-void gpio_configure(uint32_t pin, enum FSel fn, enum PullUpDown action);
-void gpio_set(uint32_t pin, bool state);
+void gpio_configure(PeripheralLock *prev, uint32_t pin, enum FSel fn,
+		    enum PullUpDown action);
+void gpio_set(PeripheralLock *prev, uint32_t pin, bool state);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_GPIO_H

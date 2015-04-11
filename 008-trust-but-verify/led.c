@@ -27,34 +27,39 @@
 static bool led_state[2];
 
 CONSTRUCTOR(LED, 1001) {
+    // LED has no peripheral but uses GPIO
+    PERIPHERAL_ENTER(lock, NULL, GPIO_BASE);
+
     // disable pull up/down and select output for activity led
-    gpio_configure(led_act_pin, OUTPUT, OFF);
+    gpio_configure(&lock, led_act_pin, OUTPUT, OFF);
     
     // disable pull up/down and select output for power led
     if (led_pwr_pin != NO_LED) {
-	gpio_configure(led_pwr_pin, OUTPUT, OFF);
+	gpio_configure(&lock, led_pwr_pin, OUTPUT, OFF);
     }
 
-    led_set(LED_ACT, false);
-    led_set(LED_PWR, false);
+    led_set(&lock, LED_ACT, false);
+    led_set(&lock, LED_PWR, false);
+
+    PERIPHERAL_LEAVE(lock);
 } CONSTRUCTOR_END
 
-void led_set(enum LED led, bool state) {
+void led_set(PeripheralLock *prev, enum LED led, bool state) {
     if (led == LED_ACT) {
 	led_state[LED_ACT] = state;
-	gpio_set(led_act_pin, state);
+	gpio_set(prev, led_act_pin, state);
     } else {
 	led_state[LED_PWR] = state;
 	if (led_pwr_pin != NO_LED) {
-	    gpio_set(led_pwr_pin, state);
+	    gpio_set(prev, led_pwr_pin, state);
 	}
     }
 }
 
-void led_toggle(enum LED led) {
+void led_toggle(PeripheralLock *prev, enum LED led) {
     if (led == LED_ACT) {
-	led_set(LED_ACT, !led_state[LED_ACT]);
+	led_set(prev, LED_ACT, !led_state[LED_ACT]);
     } else {
-	led_set(LED_PWR, !led_state[LED_PWR]);
+	led_set(prev, LED_PWR, !led_state[LED_PWR]);
     }
 }

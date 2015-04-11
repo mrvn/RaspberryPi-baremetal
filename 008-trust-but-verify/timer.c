@@ -37,81 +37,112 @@ enum TIMER_Reg {
 
 PERIPHERAL_BASE(TIMER)
 
-static uint32_t status(void) {
-    peripheral_use(TIMER_BASE);
+static uint32_t status(PeripheralLock *prev) {
+    uint32_t res;
+    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
+
     volatile uint32_t *ctrl = TIMER_reg(TIMER_CS);
-    return *ctrl & 0x7;
+    res = *ctrl & 0x7;
+    
+    PERIPHERAL_LEAVE(lock);
+    return res;
 }
 
-static void ctrl_set(uint32_t t) {
-    peripheral_use(TIMER_BASE);
+static void ctrl_set(PeripheralLock *prev, uint32_t t) {
+    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
+
     volatile uint32_t *ctrl = TIMER_reg(TIMER_CS);
     *ctrl |= t;
+
+    PERIPHERAL_LEAVE(lock);
 }
 
-uint64_t timer_count(void) {
-    peripheral_use(TIMER_BASE);
+uint64_t timer_count(PeripheralLock *prev) {
+    uint64_t res;
+    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
+
     volatile uint32_t *hi = TIMER_reg(TIMER_CHI);
     volatile uint32_t *lo = TIMER_reg(TIMER_CLO);
-    return (((uint64_t)*hi) << 32) | *lo;
+    res = (((uint64_t)*hi) << 32) | *lo;
+
+    PERIPHERAL_LEAVE(lock);
+    return res;
 }
 /*
-static uint32_t lowcount(void) {
-    peripheral_use(TIMER_BASE);
+static uint32_t lowcount(PeripheralLock *prev) {
+    uint32_t res;
+    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
+
     volatile uint32_t *lo = TIMER_reg(TIMER_CLO);
-    return *lo;
+    res = *lo;
+    
+    PERIPHERAL_LEAVE(lock);
+    return res;
 }
 */
-static uint32_t cmp(uint32_t num) {
-    peripheral_use(TIMER_BASE);
+static uint32_t cmp(PeripheralLock *prev, uint32_t num) {
+    uint32_t res;
+    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
+
     enum TIMER_Reg reg =
 	(num < 2) ? ((num < 1) ? TIMER_C0 : TIMER_C1)
 	          : ((num < 3) ? TIMER_C2 : TIMER_C3);
-    volatile uint32_t *cmp = TIMER_reg(reg);
-    return *cmp;
+    res = *TIMER_reg(reg);
+
+    PERIPHERAL_LEAVE(lock);
+    return res;
 }
 
-static void set_cmp(uint32_t num, uint32_t t) {
-    peripheral_use(TIMER_BASE);
+static void set_cmp(PeripheralLock *prev, uint32_t num, uint32_t t) {
+    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
+
     enum TIMER_Reg reg =
 	(num < 2) ? ((num < 1) ? TIMER_C0 : TIMER_C1)
 	          : ((num < 3) ? TIMER_C2 : TIMER_C3);
     volatile uint32_t *cmp = TIMER_reg(reg);
     *cmp = t;
+
+    PERIPHERAL_LEAVE(lock);
 }
 
 void timer_test(void) {
-    uint64_t t = timer_count();
-    kprintf("timer CS    = %#lx\n", status());
+    PERIPHERAL_ENTER(lock, NULL, TIMER_BASE);
+
+    uint64_t t = timer_count(&lock);
+    kprintf("timer CS    = %#lx\n", status(&lock));
     kprintf("timer count = %#18llx\n", t);
-    kprintf("timer cmp 0 = %#10lx\n", cmp(0));
-    kprintf("timer cmp 1 = %#10lx\n", cmp(1));
-    kprintf("timer cmp 2 = %#10lx\n", cmp(2));
-    kprintf("timer cmp 3 = %#10lx\n", cmp(3));
+    kprintf("timer cmp 0 = %#10lx\n", cmp(&lock, 0));
+    kprintf("timer cmp 1 = %#10lx\n", cmp(&lock, 1));
+    kprintf("timer cmp 2 = %#10lx\n", cmp(&lock, 2));
+    kprintf("timer cmp 3 = %#10lx\n", cmp(&lock, 3));
     kprintf("\n");
     
     // trigger on the second next second (at least one second from now)
-    set_cmp(1, t / 1000000 * 1000000 + 2000000);
+    set_cmp(&lock, 1, t / 1000000 * 1000000 + 2000000);
     
     // clear pending bit and enable irq
-    ctrl_set(1U << 1);
-    enable_irq(IRQ_TIMER1);
+    ctrl_set(&lock, 1U << 1);
+    enable_irq(&lock, IRQ_TIMER1);
     enable_irqs();
 
     while (1) {
 	// chill out
 	asm volatile ("wfi");
     }
+
+    PERIPHERAL_LEAVE(lock);
 }
 
-void handle_timer1(void) {
-    uint64_t t = timer_count();
-    kprintf("timer CS    = %lu\n", status());
+void handle_timer1(PeripheralLock *prev) {
+    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
+
+    uint64_t t = timer_count(&lock);
+    kprintf("timer CS    = %lu\n", status(&lock));
     kprintf("timer count = %#18llx\n", t);
-    kprintf("timer cmp 0 = %#10lx\n", cmp(0));
-    kprintf("timer cmp 1 = %#10lx\n", cmp(1));
-    kprintf("timer cmp 2 = %#10lx\n", cmp(2));
-    kprintf("timer cmp 3 = %#10lx\n", cmp(3));
+    kprintf("timer cmp 0 = %#10lx\n", cmp(&lock, 0));
+    kprintf("timer cmp 1 = %#10lx\n", cmp(&lock, 1));
+    kprintf("timer cmp 2 = %#10lx\n", cmp(&lock, 2));
+    kprintf("timer cmp 3 = %#10lx\n", cmp(&lock, 3));
 
     uint32_t frac, seconds, minutes, hours, next;
     frac = t % 1000000;
@@ -126,23 +157,25 @@ void handle_timer1(void) {
     kprintf("\n");
     
     // clear pending bit
-    ctrl_set(1U << 1);
+    ctrl_set(&lock, 1U << 1);
     // trigger one the next second mark
-    set_cmp(1, next);
+    set_cmp(&lock, 1, next);
 
     // toggle leds
     switch(seconds % 4) {
     case 0:
-	led_set(LED_ACT, true);
+	led_set(&lock, LED_ACT, true);
 	break;
     case 1:
-	led_set(LED_PWR, true);
+	led_set(&lock, LED_PWR, true);
 	break;
     case 2:
-	led_set(LED_ACT, false);
+	led_set(&lock, LED_ACT, false);
 	break;
     case 3:
-	led_set(LED_PWR, false);
+	led_set(&lock, LED_PWR, false);
 	break;
     }
+
+    PERIPHERAL_LEAVE(lock);
 }

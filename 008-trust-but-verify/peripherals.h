@@ -22,6 +22,7 @@
 #define KERNEL_PERIPHERALS_H
 
 #include <sys/cdefs.h>
+#include <stddef.h>
 #include "asm.h"
 
 __BEGIN_DECLS
@@ -33,13 +34,39 @@ enum Base {
     TIMER_BASE = 0x003000, // 0x??003000
 };
 
-extern enum Base last_peripheral;
+typedef struct PeripheralLock {
+    const struct PeripheralLock *prev;
+    enum Base base;
+} PeripheralLock;
+
+static inline void peripheral_lock_dmb(const PeripheralLock *lock) {
+    if ((lock->prev == NULL) || (lock->prev->base != lock->base)) {
+	dmb();
+    }
+}
+
+static inline void peripheral_lock_enter(PeripheralLock *lock,
+					 const PeripheralLock *prev,
+					 enum Base base) {
+    lock->prev = prev;
+    lock->base = base;
+    peripheral_lock_dmb(lock);
+}
+
+static inline void peripheral_lock_leave(const PeripheralLock *lock) {
+    peripheral_lock_dmb(lock);
+}
 
 // switching between peripherals needs a memory barrier
-static inline void peripheral_use(enum Base base) {
-    if (last_peripheral != base) dmb();
-    last_peripheral = base;
-}
+// use PERIPHERAL_ENTER / PERIPHERAL_LEAVE around peripheral access
+#define PERIPHERAL_ENTER(NAME, PREV, BASE)				\
+do {									\
+    PeripheralLock NAME;						\
+    peripheral_lock_enter(&NAME, PREV, BASE)
+
+#define PERIPHERAL_LEAVE(NAME)						\
+    peripheral_lock_leave(&NAME);					\
+} while (0)
 
 __END_DECLS
 

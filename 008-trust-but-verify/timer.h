@@ -23,10 +23,12 @@
 
 #include <stdint.h>
 #include <sys/cdefs.h>
+#include "peripherals.h"
 
 __BEGIN_DECLS
 void timer_test(void);
-uint64_t timer_count(void);
+uint64_t timer_count(PeripheralLock *prev);
+void handle_timer1(PeripheralLock *prev);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_TIMER_H

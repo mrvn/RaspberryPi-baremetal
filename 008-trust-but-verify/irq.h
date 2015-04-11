@@ -23,6 +23,7 @@
 
 #include <stdint.h>
 #include <sys/cdefs.h>
+#include "peripherals.h"
 
 __BEGIN_DECLS
 typedef struct Regs Regs;
@@ -60,8 +61,8 @@ enum IRQ {
     IRQ_ILLEGAL_ACCESS_TYPE0 = 71,
 };
 
-void enable_irq(enum IRQ irq);
-void disable_irq(enum IRQ irq);
+void enable_irq(PeripheralLock *prev, enum IRQ irq);
+void disable_irq(PeripheralLock *prev, enum IRQ irq);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_IRQ_H

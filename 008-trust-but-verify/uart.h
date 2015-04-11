@@ -23,11 +23,16 @@
 
 #include <stdint.h>
 #include <sys/cdefs.h>
+#include "peripherals.h"
 
 __BEGIN_DECLS
 void putc(char c);
 char getc(void);
 void puts(const char *str);
+
+void uart_putc(const PeripheralLock *prev, char c);
+char uart_getc(const PeripheralLock *prev);
+void uart_puts(const PeripheralLock *prev, const char *str);
 __END_DECLS
 
 #endif // ##ifndef KERNEL_UART_H

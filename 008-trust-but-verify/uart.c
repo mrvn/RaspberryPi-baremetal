@@ -120,7 +120,8 @@ enum {
 };
 
 CONSTRUCTOR(UART, 1002) {
-    peripheral_use(UART0_BASE);
+    PERIPHERAL_ENTER(lock, NULL, UART0_BASE);
+
     volatile uint32_t *cr = UART0_reg(UART0_CR);
     volatile uint32_t *fr = UART0_reg(UART0_FR);
     volatile uint32_t *lcrh = UART0_reg(UART0_LCRH);
@@ -140,10 +141,9 @@ CONSTRUCTOR(UART, 1002) {
     *lcrh &= ~LCRH_FEN;
 	
     // select function 0 and disable pull up/down for pins 14, 15
-    gpio_configure(14, FN0, OFF);
-    gpio_configure(15, FN0, OFF);
+    gpio_configure(&lock, 14, FN0, OFF);
+    gpio_configure(&lock, 15, FN0, OFF);
 
-    peripheral_use(UART0_BASE);
     // Set integer & fractional part of baud rate.
     // Divider = UART_CLOCK/(16 * Baud)
     // Fraction part register = (Fractional part * 64) + 0.5
@@ -168,31 +168,53 @@ CONSTRUCTOR(UART, 1002) {
 
     // Enable UART0, receive & transfer part of UART.
     *cr = CR_UARTEN | CR_TXW | CR_RXE;
+
+    PERIPHERAL_LEAVE(lock);
 } CONSTRUCTOR_END
 
 void putc(char c) {
-    peripheral_use(UART0_BASE);
+    uart_putc(NULL, c);
+}
+
+char getc(void) {
+    return uart_getc(NULL);
+}
+
+void puts(const char *str) {
+    uart_puts(NULL, str);
+}
+
+void uart_putc(const PeripheralLock *prev, char c) {
+    PERIPHERAL_ENTER(lock, prev, UART0_BASE);
 
     // wait for space in the transmit FIFO
     while(*UART0_reg(UART0_FR) & FR_TXFF) { }
 
     // add char to transmit FIFO
     *UART0_reg(UART0_DR) = c;
+
+    PERIPHERAL_LEAVE(lock);
 }
 
-char getc(void) {
-    peripheral_use(UART0_BASE);
+char uart_getc(const PeripheralLock *prev) {
+    char c;
+    PERIPHERAL_ENTER(lock, prev, UART0_BASE);
 
     // wait for data in the receive FIFO
     while(*UART0_reg(UART0_FR) & FR_RXFE) { }
 
     // extract char from receive FIFO
-    return *UART0_reg(UART0_DR);
+    c = *UART0_reg(UART0_DR);
+
+    PERIPHERAL_LEAVE(lock);
+    return c;
 }
 
-void puts(const char *str) {
-    peripheral_use(UART0_BASE);
+void uart_puts(const PeripheralLock *prev, const char *str) {
+    PERIPHERAL_ENTER(lock, prev, UART0_BASE);
 
     // putc until 0 byte
     while (*str) putc(*str++);
+
+    PERIPHERAL_LEAVE(lock);
 }

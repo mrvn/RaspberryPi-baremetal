@@ -1,4 +1,4 @@
-OBJS := boot.o peripherals.o arch_info.o assert.o gpio.o led.o uart.o kprintf.o
+OBJS := boot.o arch_info.o assert.o gpio.o led.o uart.o kprintf.o
 OBJS += entry.o exceptions.o irq.o timer.o main.o
 
 CROSS   ?= arm-none-eabi-

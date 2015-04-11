@@ -21,7 +21,6 @@
 #include "gpio.h"
 #include "arch_info.h"
 #include "asm.h"
-#include "peripherals.h"
 
 enum GPIO_Reg {
     // function selector
@@ -47,8 +46,8 @@ enum GPIO_Reg {
 
 PERIPHERAL_BASE(GPIO)
 
-void gpio_configure(uint32_t pin, enum FSel fn, enum PullUpDown action) {
-    peripheral_use(GPIO_BASE);
+void gpio_configure(PeripheralLock *prev, uint32_t pin, enum FSel fn, enum PullUpDown action) {
+    PERIPHERAL_ENTER(lock, prev, GPIO_BASE);
 
     // set pull up down
     // ----------------
@@ -75,12 +74,16 @@ void gpio_configure(uint32_t pin, enum FSel fn, enum PullUpDown action) {
     uint32_t shift = (pin % 10) * 3;
     uint32_t mask = ~(7U << shift);
     *fsel = (*fsel & mask) | (fn << shift);
+
+    PERIPHERAL_LEAVE(lock);
 }
 
-void gpio_set(uint32_t pin, bool state) {
-    peripheral_use(GPIO_BASE);
+void gpio_set(PeripheralLock *prev, uint32_t pin, bool state) {
+    PERIPHERAL_ENTER(lock, prev, GPIO_BASE);
 
     // set or clear output of pin
     GPIO_reg(state ? GPIO_SET0 : GPIO_CLR0)[pin / 32] = 1U << (pin % 32);
+
+    PERIPHERAL_LEAVE(lock);
 }
 

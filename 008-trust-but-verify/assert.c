@@ -25,19 +25,26 @@
 #include "asm.h"
 #include "timer.h"
 #include "kprintf.h"
+#include "peripherals.h"
 
 #define UNUSED(x) (void)(x)
 
 // This prints an "Assertion failed" message and blinks the LEDs madly
 extern void __assert_fail (const char *__assertion, const char *__file,
                            unsigned int __line, const char *__function) {
+    // enter peripheral for LED
+    PERIPHERAL_ENTER(lock, NULL, GPIO_BASE);
+
     kprintf("Assertion failed: %s: %d: %s: assert(%s)\n",
 	    __file, __line, __function, __assertion);
     uint64_t next = 0;
     while (true) {
-	while (timer_count() < next) { }
-	led_toggle(LED_ACT);
-	if (next % 200000 == 0) led_toggle(LED_PWR);
+	while (timer_count(&lock) < next) { }
+	led_toggle(&lock, LED_ACT);
+	if (next % 200000 == 0) led_toggle(&lock, LED_PWR);
 	next += 50000;
     }
+
+    // leave peripheral for LED
+    PERIPHERAL_LEAVE(lock);
 }
