@@ -21,10 +21,7 @@
 #include "gpio.h"
 #include "arch_info.h"
 #include "asm.h"
-
-enum {
-    GPIO_BASE = 0x200000, // 0x??200000
-};
+#include "peripherals.h"
 
 enum GPIO_Reg {
     // function selector
@@ -51,6 +48,8 @@ enum GPIO_Reg {
 PERIPHERAL_BASE(GPIO)
 
 void gpio_configure(uint32_t pin, enum FSel fn, enum PullUpDown action) {
+    peripheral_use(GPIO_BASE);
+
     // set pull up down
     // ----------------
     
@@ -79,6 +78,9 @@ void gpio_configure(uint32_t pin, enum FSel fn, enum PullUpDown action) {
 }
 
 void gpio_set(uint32_t pin, bool state) {
+    peripheral_use(GPIO_BASE);
+
+    // set or clear output of pin
     GPIO_reg(state ? GPIO_SET0 : GPIO_CLR0)[pin / 32] = 1U << (pin % 32);
 }
 

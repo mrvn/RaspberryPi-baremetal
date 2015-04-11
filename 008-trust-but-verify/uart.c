@@ -23,10 +23,7 @@
 #include "gpio.h"
 #include "assert.h"
 #include "init_priorities.h"
-
-enum {
-    UART0_BASE = 0x201000, // 0x??201000
-};
+#include "peripherals.h"
 
 enum UART0_Reg {
     UART0_DR     = 0x00, // 0x??201000 data register
@@ -123,6 +120,7 @@ enum {
 };
 
 CONSTRUCTOR(UART, 1002) {
+    peripheral_use(UART0_BASE);
     volatile uint32_t *cr = UART0_reg(UART0_CR);
     volatile uint32_t *fr = UART0_reg(UART0_FR);
     volatile uint32_t *lcrh = UART0_reg(UART0_LCRH);
@@ -145,6 +143,7 @@ CONSTRUCTOR(UART, 1002) {
     gpio_configure(14, FN0, OFF);
     gpio_configure(15, FN0, OFF);
 
+    peripheral_use(UART0_BASE);
     // Set integer & fractional part of baud rate.
     // Divider = UART_CLOCK/(16 * Baud)
     // Fraction part register = (Fractional part * 64) + 0.5
@@ -172,20 +171,28 @@ CONSTRUCTOR(UART, 1002) {
 } CONSTRUCTOR_END
 
 void putc(char c) {
+    peripheral_use(UART0_BASE);
+
     // wait for space in the transmit FIFO
     while(*UART0_reg(UART0_FR) & FR_TXFF) { }
+
     // add char to transmit FIFO
     *UART0_reg(UART0_DR) = c;
 }
 
 char getc(void) {
+    peripheral_use(UART0_BASE);
+
     // wait for data in the receive FIFO
     while(*UART0_reg(UART0_FR) & FR_RXFE) { }
+
     // extract char from receive FIFO
     return *UART0_reg(UART0_DR);
 }
 
 void puts(const char *str) {
+    peripheral_use(UART0_BASE);
+
     // putc until 0 byte
     while (*str) putc(*str++);
 }

@@ -23,10 +23,7 @@
 #include "kprintf.h"
 #include "irq.h"
 #include "led.h"
-
-enum {
-    TIMER_BASE = 0x003000, // 0x??003000
-};
+#include "peripherals.h"
 
 enum TIMER_Reg {
     TIMER_CS  = 0x00, // 0x??003000 System Timer Control/Status
@@ -41,27 +38,32 @@ enum TIMER_Reg {
 PERIPHERAL_BASE(TIMER)
 
 static uint32_t status(void) {
+    peripheral_use(TIMER_BASE);
     volatile uint32_t *ctrl = TIMER_reg(TIMER_CS);
     return *ctrl & 0x7;
 }
 
 static void ctrl_set(uint32_t t) {
+    peripheral_use(TIMER_BASE);
     volatile uint32_t *ctrl = TIMER_reg(TIMER_CS);
     *ctrl |= t;
 }
 
 uint64_t timer_count(void) {
+    peripheral_use(TIMER_BASE);
     volatile uint32_t *hi = TIMER_reg(TIMER_CHI);
     volatile uint32_t *lo = TIMER_reg(TIMER_CLO);
     return (((uint64_t)*hi) << 32) | *lo;
 }
 /*
 static uint32_t lowcount(void) {
+    peripheral_use(TIMER_BASE);
     volatile uint32_t *lo = TIMER_reg(TIMER_CLO);
     return *lo;
 }
 */
 static uint32_t cmp(uint32_t num) {
+    peripheral_use(TIMER_BASE);
     enum TIMER_Reg reg =
 	(num < 2) ? ((num < 1) ? TIMER_C0 : TIMER_C1)
 	          : ((num < 3) ? TIMER_C2 : TIMER_C3);
@@ -70,6 +72,7 @@ static uint32_t cmp(uint32_t num) {
 }
 
 static void set_cmp(uint32_t num, uint32_t t) {
+    peripheral_use(TIMER_BASE);
     enum TIMER_Reg reg =
 	(num < 2) ? ((num < 1) ? TIMER_C0 : TIMER_C1)
 	          : ((num < 3) ? TIMER_C2 : TIMER_C3);

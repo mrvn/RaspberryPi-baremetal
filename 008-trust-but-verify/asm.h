@@ -38,7 +38,7 @@ static inline void isb(void) {
 }
 
 /* Data Synchronization Barrier
- * This memorx barrier completes when all explicit memory transactions
+ * This memory barrier completes when all explicit memory transactions
  * occurring in program order before this instruction are completed. No
  * explicit memory transactions occurring in program order after this
  * instruction are started until this instruction completes. In fact, no
