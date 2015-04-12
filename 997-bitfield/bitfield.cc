@@ -1,19 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-template<size_t num> struct Bit {
-    static constexpr size_t SHIFT = 1;
-    static constexpr uint32_t MASK = 1U << num;
-
-    static constexpr uint32_t decode(uint32_t raw) {
-	return (raw & MASK) >> num;
-    }
-
-    static constexpr uint32_t encode(uint32_t raw) {
-	return (raw << num) & MASK;
-    }
-};
-
 template<size_t high, size_t low> struct Bits {
     static constexpr size_t SHIFT = high - low + 1;
     static constexpr uint32_t MASK = ((1U << SHIFT) - 1) << low;
@@ -26,6 +13,8 @@ template<size_t high, size_t low> struct Bits {
 	return (raw << low) & MASK;
     }
 };
+
+template<size_t num> struct Bit : Bits<num, num> { };
 
 template<typename ... Ts> struct Field;
 
@@ -64,20 +53,16 @@ struct PhysAddr {
     uint32_t x;
 };
 
-template<size_t num>
-class BitValue {
+template<typename ... Ts>
+class FieldValue {
 public:
-    using B = Bit<num>;
-    static constexpr uint32_t MASK = B::MASK;
+    static constexpr uint32_t MASK = Field<Ts ...>::MASK;
 
-    explicit constexpr BitValue(bool v = true) : raw_(B::encode(v ? 1 : 0)) { }
-
-    constexpr BitValue operator !(void) const {
-	return BitValue(raw_ == 0);
-    }
+    explicit constexpr FieldValue(uint32_t raw)
+	: raw_(Field<Ts ...>::encode(raw)) { }
 
     static constexpr uint32_t decode(uint32_t v) {
-	return Bit<num>::decode(v);
+	return Field<Ts ...>::decode(v);
     }
 
     constexpr uint32_t raw() const {
@@ -87,15 +72,23 @@ private:
     uint32_t raw_;
 };
 
-template<typename ... Ts>
-class FieldValue {
+template<size_t num>
+class FieldValue<Bit<num> > {
 public:
-    static constexpr uint32_t MASK = Field<Ts ...>::MASK;
+    static constexpr uint32_t MASK = Field<Bit<num> >::MASK;
 
-    explicit constexpr FieldValue(uint32_t raw) : raw_(Field<Ts ...>::encode(raw)) { }
+    explicit constexpr FieldValue(uint32_t raw)
+	: raw_(Field<Bit<num> >::encode(raw)) { }
+
+    explicit constexpr FieldValue(bool v = true)
+	: raw_(Field<Bit<num> >::encode(v ? 1 : 0)) { } 
+
+    constexpr FieldValue operator !(void) const {
+	return FieldValue(raw_ == 0);
+    }
 
     static constexpr uint32_t decode(uint32_t v) {
-	return Field<Ts ...>::decode(v);
+	return Field<Bit<num> >::decode(v);
     }
 
     constexpr uint32_t raw() const {
@@ -109,10 +102,10 @@ class Merge {
 public:
     constexpr Merge(uint32_t set, uint32_t mask)
 	: set_(set), mask_(mask) { }
-    
+    /*
     template<size_t num>
     constexpr Merge(BitValue<num> t) : set_(t.raw()), mask_(t.MASK) { }
-
+    */
     template<typename ... Ts>
     constexpr Merge(FieldValue<Ts ...> t) : set_(t.raw()), mask_(t.MASK) { }
     
@@ -159,13 +152,13 @@ public:
     };
     */
     using Addr      = FieldValue<Bits<31, 12>>;
-    using Global    = BitValue<11>;
-    using Shared    = BitValue<10>;
+    using Global    = FieldValue<Bit<11> >;
+    using Shared    = FieldValue<Bit<10> >;
     using Ap        = FieldValue<Bit<9>, Bits<5, 4> >;
     using Tex       = FieldValue<Bits<8, 6> >;
-    using Cached    = BitValue<3>;
-    using Buffered  = BitValue<2>;
-    using Exec      = BitValue<0>;
+    using Cached    = FieldValue<Bit<3> >;
+    using Buffered  = FieldValue<Bit<2> >;
+    using Exec      = FieldValue<Bit<0> >;
 
     static constexpr const Global GLOBAL{false};
     static constexpr const Shared SHARED{true};
@@ -191,7 +184,7 @@ public:
         return raw_;
     }
 private:
-    using SmallPage = BitValue<1>;
+    using SmallPage = FieldValue<Bit<1> >;
     static constexpr const SmallPage SMALL_PAGE{true};
     static constexpr const Merge DEFAULT{
         Merge::merge(SMALL_PAGE, !GLOBAL, !EXEC)
@@ -219,10 +212,10 @@ volatile uint32_t * peripheral_base(uint32_t base, uint32_t reg) {
 // peripheral register, e.g. UART data register
 class DR {
 public:
-    using Oe   = BitValue<11>; // Overrun error
-    using Be   = BitValue<10>; // Break error
-    using Pe   = BitValue< 9>; // Parity error
-    using Fe   = BitValue< 8>; // Framing error
+    using Oe   = FieldValue<Bit<11> >; // Overrun error
+    using Be   = FieldValue<Bit<10> >; // Break error
+    using Pe   = FieldValue<Bit< 9> >; // Parity error
+    using Fe   = FieldValue<Bit< 8> >; // Framing error
     using Data = FieldValue<Bits<7, 0> >; // Receive/Transmit data character
     
     static constexpr const Oe OE{true};
