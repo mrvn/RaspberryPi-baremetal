@@ -1,50 +1,56 @@
 #include <stdio.h>
 #include <stdint.h>
 
-template<size_t high, size_t low> struct Bits {
+struct Raw { } RAW;
+
+template<size_t high, size_t low> class Bits {
+public:
     static constexpr size_t SHIFT = high - low + 1;
     static constexpr uint32_t MASK = ((1U << SHIFT) - 1) << low;
-
-    static constexpr uint32_t decode(uint32_t raw) {
-	return (raw & MASK) >> low;
-    }
-
-    static constexpr uint32_t encode(uint32_t raw) {
-	return (raw << low) & MASK;
-    }
+    explicit constexpr Bits(uint32_t x) : raw_((x << low) & MASK) { }
+    explicit constexpr Bits(Raw, uint32_t x) : raw_(x & MASK) { }
+    constexpr uint32_t raw() const { return raw_; }
+    constexpr uint32_t decode() const { return raw_ >> low; }
+protected:
+    uint32_t raw_;
 };
 
-template<size_t num> struct Bit : Bits<num, num> { };
+template<size_t num> class Bit : public Bits<num, num> {
+public:
+    explicit constexpr Bit(Raw r, uint32_t x) : Bits<num, num>(r, x) { }
+    explicit constexpr Bit(bool x) : Bits<num, num>(x ? 1 : 0) { }
+    explicit operator bool() const { return Bits<num, num>::raw_ != 0; }
+    constexpr Bit operator !() const { return Bit(Bits<num, num>::raw_ == 0); }
+};
 
-template<typename ... Ts> struct Field;
+template<typename ... Ts> class Field;
 
 template<typename T, typename ... Ts>
-struct Field<T, Ts ...> {
+class Field<T, Ts ...> {
+public:
     static constexpr size_t SHIFT = T::SHIFT + Field<Ts...>::SHIFT;
     static constexpr uint32_t MASK = T::MASK | Field<Ts...>::MASK;
     using Sub = Field<Ts ...>;
 
-    static constexpr uint32_t decode(uint32_t raw) {
-	return (T::decode(raw) << Sub::SHIFT) | Sub::decode(raw);
+    explicit constexpr Field(Raw, uint32_t x) : raw_(x & MASK) { }
+    explicit constexpr Field(uint32_t x)
+	: raw_(T(x >> Sub::SHIFT).raw() | Sub(x).raw()) { }
+    constexpr uint32_t raw() const { return raw_; }
+    constexpr uint32_t decode() const {
+	return T(raw_).decode() << Sub::SHIFT | Sub(raw_).decode();
     }
-
-    static constexpr uint32_t encode(uint32_t raw) {
-	return T::encode(raw >> Sub::SHIFT) | Sub::encode(raw);
-    }
+private:
+    uint32_t raw_;
 };
 
 template<>
 struct Field<> {
     static constexpr size_t SHIFT = 0;
     static constexpr uint32_t MASK = 0;
-
-    static constexpr uint32_t decode(uint32_t) {
-	return 0;
-    }
-
-    static constexpr uint32_t encode(uint32_t) {
-	return 0;
-    }
+    explicit constexpr Field(Raw, uint32_t) { }
+    explicit constexpr Field(uint32_t) { }
+    constexpr uint32_t raw() const { return 0; }
+    constexpr uint32_t decode() const { return 0; }
 };
 
 struct PhysAddr {
@@ -53,61 +59,13 @@ struct PhysAddr {
     uint32_t x;
 };
 
-template<typename ... Ts>
-class FieldValue {
-public:
-    static constexpr uint32_t MASK = Field<Ts ...>::MASK;
-
-    explicit constexpr FieldValue(uint32_t raw)
-	: raw_(Field<Ts ...>::encode(raw)) { }
-
-    static constexpr uint32_t decode(uint32_t v) {
-	return Field<Ts ...>::decode(v);
-    }
-
-    constexpr uint32_t raw() const {
-        return raw_;
-    }
-private:
-    uint32_t raw_;
-};
-
-template<size_t num>
-class FieldValue<Bit<num> > {
-public:
-    static constexpr uint32_t MASK = Field<Bit<num> >::MASK;
-
-    explicit constexpr FieldValue(uint32_t raw)
-	: raw_(Field<Bit<num> >::encode(raw)) { }
-
-    explicit constexpr FieldValue(bool v = true)
-	: raw_(Field<Bit<num> >::encode(v ? 1 : 0)) { } 
-
-    constexpr FieldValue operator !(void) const {
-	return FieldValue(raw_ == 0);
-    }
-
-    static constexpr uint32_t decode(uint32_t v) {
-	return Field<Bit<num> >::decode(v);
-    }
-
-    constexpr uint32_t raw() const {
-        return raw_;
-    }
-private:
-    uint32_t raw_;
-};
-
 class Merge {
 public:
     constexpr Merge(uint32_t set, uint32_t mask)
 	: set_(set), mask_(mask) { }
-    /*
-    template<size_t num>
-    constexpr Merge(BitValue<num> t) : set_(t.raw()), mask_(t.MASK) { }
-    */
-    template<typename ... Ts>
-    constexpr Merge(FieldValue<Ts ...> t) : set_(t.raw()), mask_(t.MASK) { }
+
+    template<typename T>
+    constexpr Merge(T t) : set_(t.raw()), mask_(t.MASK) { }
     
     constexpr Merge operator +(const Merge &other) const {
 	return Merge(set_ | (other.set_ & ~mask_), mask_ | other.mask_);
@@ -118,17 +76,9 @@ public:
 	return first + merge(ts...);
     }
 
-    static constexpr Merge merge() {
-	return Merge(0, 0);
-    }
- 
-    constexpr uint32_t set() const {
-        return set_;
-    }
-
-    constexpr uint32_t mask() const {
-        return mask_;
-    }
+    static constexpr Merge merge() { return Merge(0, 0); }
+    constexpr uint32_t set() const { return set_; }
+    constexpr uint32_t mask() const { return mask_; }
 private:
     uint32_t set_;
     uint32_t mask_;
@@ -151,14 +101,14 @@ public:
 	uint32_t not_exec   : 1;
     };
     */
-    using Addr      = FieldValue<Bits<31, 12>>;
-    using Global    = FieldValue<Bit<11> >;
-    using Shared    = FieldValue<Bit<10> >;
-    using Ap        = FieldValue<Bit<9>, Bits<5, 4> >;
-    using Tex       = FieldValue<Bits<8, 6> >;
-    using Cached    = FieldValue<Bit<3> >;
-    using Buffered  = FieldValue<Bit<2> >;
-    using Exec      = FieldValue<Bit<0> >;
+    using Addr      = Bits<31, 12>;
+    using Global    = Bit<11>;
+    using Shared    = Bit<10>;
+    using Ap        = Field<Bit<9>, Bits<5, 4> >;
+    using Tex       = Bits<8, 6>;
+    using Cached    = Bit<3>;
+    using Buffered  = Bit<2>;
+    using Exec      = Bit<0>;
 
     static constexpr const Global GLOBAL{false};
     static constexpr const Shared SHARED{true};
@@ -172,19 +122,19 @@ public:
 
     template<typename T>
     constexpr uint32_t is(T && t) const {
-	return t.decode(raw_) == t.decode(t.raw());
+	return (raw() & t.MASK) == t.raw();
     }
 
     template<typename T>
     constexpr uint32_t get() const {
-	return T::decode(raw_);
+	return T(RAW, raw_).decode();
     }
     
     constexpr uint32_t raw() const {
         return raw_;
     }
 private:
-    using SmallPage = FieldValue<Bit<1> >;
+    using SmallPage = Bit<1>;
     static constexpr const SmallPage SMALL_PAGE{true};
     static constexpr const Merge DEFAULT{
         Merge::merge(SMALL_PAGE, !GLOBAL, !EXEC)
@@ -212,11 +162,11 @@ volatile uint32_t * peripheral_base(uint32_t base, uint32_t reg) {
 // peripheral register, e.g. UART data register
 class DR {
 public:
-    using Oe   = FieldValue<Bit<11> >; // Overrun error
-    using Be   = FieldValue<Bit<10> >; // Break error
-    using Pe   = FieldValue<Bit< 9> >; // Parity error
-    using Fe   = FieldValue<Bit< 8> >; // Framing error
-    using Data = FieldValue<Bits<7, 0> >; // Receive/Transmit data character
+    using Oe   = Bit<11>; // Overrun error
+    using Be   = Bit<10>; // Break error
+    using Pe   = Bit< 9>; // Parity error
+    using Fe   = Bit< 8>; // Framing error
+    using Data = Bits<7, 0>; // Receive/Transmit data character
     
     static constexpr const Oe OE{true};
     static constexpr const Be BE{true};
@@ -243,12 +193,12 @@ public:
     
     template<typename T>
     constexpr uint32_t is(T && t) const {
-	return t.decode(raw()) == t.decode(t.raw());
+	return (raw() & t.MASK) == t.raw();
     }
 
     template<typename T>
     constexpr uint32_t get() const {
-	return T::decode(raw());
+	return T(RAW, raw()).decode();
     }
     
     uint32_t raw() const {
@@ -258,10 +208,10 @@ private:
     volatile uint32_t *ptr_;
 };
 
-constexpr const DR::Oe OE;
-constexpr const DR::Be BE;
-constexpr const DR::Pe PE;
-constexpr const DR::Fe FE;
+constexpr const DR::Oe DR::OE;
+constexpr const DR::Be DR::BE;
+constexpr const DR::Pe DR::PE;
+constexpr const DR::Fe DR::FE;
 
 int main() {
     printf("Testing Entry:\n");
