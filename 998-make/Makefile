@@ -97,7 +97,7 @@ LDFLAGS     := $(BASEFLAGS) -nostdlib
 
 # Needed for partial LTO
 export COLLECT_GCC := $(CC)
-export COLLECT_GCC_OPTIONS := $(BASEFLAGS)
+export COLLECT_GCC_OPTIONS := $(patsubst %,'%',$(BASEFLAGS) -flto=jobserver)
 LTO_PLUGIN  := $(shell $(CC) --print-file-name liblto_plugin.so)
 LTO_WRAPPER := $(shell $(CC) --print-prog-name lto-wrapper)
 LD_NO_LTO  = $(CROSS)ld -plugin $(LTO_PLUGIN) -plugin-opt=$(LTO_WRAPPER)
